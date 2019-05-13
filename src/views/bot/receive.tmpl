@@ -1,0 +1,20 @@
+{{ define "content" }}
+{{ if .Error}}
+<div class="notification is-warning">
+  {{ .Error }}
+</div>
+{{ end }}
+
+
+<h2 class="title is-2">Messages for {{ .Number }}</h2>
+{{ range .Messages }}
+<pre>
+From:  {{ .Source }}
+On:  {{ .Timestamp }}
+Body: {{ .Body}}
+</pre>
+<br/>
+{{ end }}
+
+<a href="/account">Back</a>
+{{ end }}

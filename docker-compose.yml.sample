@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  quepasa:
+    image: quepasa
+    ports:
+      - "3000:3000"
+    environment:
+      - SIGNING_SECRET=CHANGE_ME
+      - DB_CONNECTION=user=siggy dbname=siggy_dev

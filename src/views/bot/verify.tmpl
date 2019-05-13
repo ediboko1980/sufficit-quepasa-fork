@@ -1,0 +1,28 @@
+{{ define "content" }}
+{{ if .Error}}
+<div class="notification is-warning">
+  {{ .Error}}
+</div>
+{{ end }}
+<script>
+  (function() {
+    var ws = new WebSocket("ws://localhost:3000/bot/{{ .Bot.ID }}/verify/ws"); // temp
+    ws.onmessage = function (event) {
+      console.log(event.data);
+      if (event.data === "Complete") {
+        window.location.replace("/account");
+      } else {
+        var img = document.getElementById("qr-code");
+        img.src = "data:image/png;base64, " + event.data;
+      }
+    }
+    ws.onopen = function (event) {
+      ws.send("start");
+    };
+  })();
+</script>
+<label class="label">Scan this QR code for {{ .Bot.Number }} in the next 20 seconds:</label>
+<img id="qr-code" src="">
+<button class="button is-block is-large is-fullwidth" formaction="/bot/{{ .Bot.ID }}/verify">New code</button>
+<a href="/account">Back</a>
+{{ end }}

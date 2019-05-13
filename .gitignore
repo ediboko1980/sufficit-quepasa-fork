@@ -1,0 +1,14 @@
+# Mac
+.DS_Store
+
+# VSCode
+.vscode
+
+# Emacs
+*~
+\#*\#
+todo.org
+.projectile
+
+tmp/
+docker-compose.yml
