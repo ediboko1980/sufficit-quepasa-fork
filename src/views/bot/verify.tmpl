@@ -6,7 +6,7 @@
 {{ end }}
 <script>
   (function() {
-    var ws = new WebSocket("ws://localhost:3000/bot/{{ .Bot.ID }}/verify/ws"); // temp
+    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/{{ .Bot.ID }}/verify/ws"); // temp
     ws.onmessage = function (event) {
       console.log(event.data);
       if (event.data === "Complete") {

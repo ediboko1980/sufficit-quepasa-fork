@@ -13,15 +13,8 @@ import (
 )
 
 // Register bot
-
 type registerFormData struct {
 	PageTitle string
-}
-
-type registerResponse struct {
-	Result   string `json:"result"`
-	NumberID string `json:"numberID"`
-	Secret   string `json:"secret"`
 }
 
 func RegisterFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,18 +76,24 @@ type verifyFormData struct {
 	PageTitle string
 	Error     string
 	Bot       models.Bot
+	Protocol  string
+	Host      string
 }
 
 func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
+	var errorDisplay string
+
 	bot, err := findBot(r)
 	if err != nil {
-		return
+		errorDisplay = err.Error()
 	}
 
 	data := verifyFormData{
 		PageTitle: "Verify",
-		Error:     "",
+		Error:     errorDisplay,
 		Bot:       bot,
+		Protocol:  common.WebSocketProtocol(),
+		Host:      r.Host,
 	}
 
 	templates := template.Must(template.ParseFiles(
@@ -157,7 +156,6 @@ func SendFormHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := findBot(r)
 	if err != nil {
 		displayError = err.Error()
-		return
 	}
 
 	data := sendFormData{
@@ -249,14 +247,15 @@ type receiveFormData struct {
 }
 
 func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
+	var displayError string
 	bot, err := findBot(r)
 	if err != nil {
-		return
+		displayError = err.Error()
 	}
 
 	data := receiveFormData{
 		PageTitle: "Receive",
-		Error:     "",
+		Error:     displayError,
 		Number:    bot.Number,
 		Messages:  []message{},
 	}
@@ -278,6 +277,7 @@ func ReceiveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete bot
+
 type deleteResponse struct {
 	Result string `json:"result"`
 }

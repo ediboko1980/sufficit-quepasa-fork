@@ -51,3 +51,11 @@ func GetUser(r *http.Request) (models.User, error) {
 
 	return models.FindUserByID(GetDB(), userID)
 }
+
+func WebSocketProtocol() string {
+	protocol := "wss"
+	if os.Getenv("APP_ENV") == "development" {
+		protocol = "ws"
+	}
+	return protocol
+}

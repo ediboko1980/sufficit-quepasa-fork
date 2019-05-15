@@ -28,6 +28,7 @@ COPY --from=builder /build/assets ./assets
 
 EXPOSE 3000
 ENV PORT=3000
+ENV APP_ENV=production
 ENV SIGNING_SECRET=changeme
 ENV DB_CONNECTION=
 CMD ["/app/quepasa"]
