@@ -183,6 +183,7 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err = common.SendMessage(bot, recipient, message); err != nil {
 		common.RespondServerError(w, err)
+		return
 	}
 
 	data := sendFormData{
@@ -253,11 +254,6 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = common.ReceiveMessages(bot)
-	if err != nil {
-		return
-	}
-
 	data := receiveFormData{
 		PageTitle: "Receive",
 		Error:     "",
@@ -270,7 +266,12 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReceiveHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := findBot(r)
+	bot, err := findBot(r)
+	if err != nil {
+		return
+	}
+
+	err = common.ReceiveMessages(bot)
 	if err != nil {
 		return
 	}
