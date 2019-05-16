@@ -4,6 +4,11 @@
     <p class="subtitle">Welcome {{ .User.Email }}</p>
     <h2 class="title is-2">Your bots</h2>
     <a class="button is-primary" href="/bot/register">Register Bot</a>
+    {{ if .ErrorMessage }}
+    <div class="notification is-warning">
+      {{ .ErrorMessage }}
+    </div>
+    {{ end }}
     <table class="table is-fullwidth">
       <thead>
         <tr>

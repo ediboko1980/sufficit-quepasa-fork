@@ -1,4 +1,10 @@
 {{ define "content" }}
+{{ if .ErrorMessage}}
+<div class="notification is-warning">
+  {{ .ErrorMessage }}
+</div>
+{{ end }}
+
 <form class="" method="post" action="/bot/register">
   <div class="field">
     <div class="control">

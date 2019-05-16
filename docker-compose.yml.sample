@@ -6,5 +6,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SIGNING_SECRET=CHANGE_ME
+      - APP_ENV=production
+      - SIGNING_SECRET=changeme
       - DB_CONNECTION=user=siggy dbname=siggy_dev

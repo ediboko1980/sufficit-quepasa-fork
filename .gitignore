@@ -9,6 +9,7 @@
 \#*\#
 todo.org
 .projectile
+client.rest
 
 tmp/
 docker-compose.yml

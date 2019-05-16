@@ -1,10 +1,9 @@
 {{ define "content" }}
-{{ if .Error}}
+{{ if .ErrorMessage}}
 <div class="notification is-warning">
-  {{ .Error }}
+  {{ .ErrorMessage }}
 </div>
 {{ end }}
-
 
 <h2 class="title is-2">Messages for {{ .Number }}</h2>
 {{ range .Messages }}

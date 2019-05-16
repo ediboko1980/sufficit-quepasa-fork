@@ -10,13 +10,13 @@ import (
 )
 
 type Bot struct {
-	ID        string `db:"id"`
-	Number    string `db:"number"`
-	Verified  bool   `db:"is_verified"`
-	Token     string `db:"token"`
-	UserID    string `db:"user_id"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID        string `db:"id" json:"id"`
+	Number    string `db:"number" json:"number"`
+	Verified  bool   `db:"is_verified", json:"is_verified"`
+	Token     string `db:"token" json:"token"`
+	UserID    string `db:"user_id" json:"user_id"`
+	CreatedAt string `db:"created_at" json:"created_at"`
+	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
 func FindAllBotsForUser(db *sqlx.DB, userID string) ([]Bot, error) {

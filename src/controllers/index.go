@@ -9,7 +9,7 @@ type indexData struct {
 	PageTitle string
 }
 
-// IndexHandler - renders "/"
+// IndexHandler renders route GET "/"
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	data := indexData{
 		PageTitle: "Home",

@@ -14,13 +14,25 @@ type Store struct {
 	UpdatedAt string `db:"updated_at"`
 }
 
+func storeExists(db *sqlx.DB, botID string) (bool, error) {
+	var count int
+	err := db.Get(&count, "SELECT count(*) FROM signalstore WHERE bot_id = $1", botID)
+	return count > 0, err
+}
+
 func GetOrCreateStore(db *sqlx.DB, botID string) (Store, error) {
 	var store Store
-	store, err := GetStore(db, botID)
+	exists, err := storeExists(db, botID)
 	if err != nil {
 		return store, err
 	}
-	if store.BotID == "" {
+
+	if exists {
+		store, err := GetStore(db, botID)
+		if err != nil {
+			return store, err
+		}
+	} else {
 		store, err = CreateStore(db, botID)
 	}
 	return store, err

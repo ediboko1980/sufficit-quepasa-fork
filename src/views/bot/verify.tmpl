@@ -1,14 +1,14 @@
 {{ define "content" }}
-{{ if .Error}}
+{{ if .ErrorMessage}}
 <div class="notification is-warning">
-  {{ .Error}}
+  {{ .ErrorMessage}}
 </div>
 {{ end }}
+
 <script>
   (function() {
-    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/{{ .Bot.ID }}/verify/ws"); // temp
+    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/{{ .Bot.ID }}/verify/ws");
     ws.onmessage = function (event) {
-      console.log(event.data);
       if (event.data === "Complete") {
         window.location.replace("/account");
       } else {

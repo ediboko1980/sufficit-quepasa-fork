@@ -12,19 +12,31 @@ import (
 	"gitlab.com/digiresilience/link/quepasa/models"
 )
 
-// Register bot
+//
+// Register
+//
+
 type registerFormData struct {
-	PageTitle string
+	PageTitle    string
+	ErrorMessage string
 }
 
+func renderRegisterForm(w http.ResponseWriter, data registerFormData) {
+	templates := template.Must(template.ParseFiles(
+		"views/layouts/main.tmpl",
+		"views/bot/register.tmpl"))
+	templates.ExecuteTemplate(w, "main", data)
+}
+
+// RegisterFormHandler renders route GET "/bot/register"
 func RegisterFormHandler(w http.ResponseWriter, r *http.Request) {
 	data := registerFormData{
 		PageTitle: "Register",
 	}
-	templates := template.Must(template.ParseFiles("views/layouts/main.tmpl", "views/bot/register.tmpl"))
-	templates.ExecuteTemplate(w, "main", data)
+	renderRegisterForm(w, data)
 }
 
+// RegisterHandler renders route POST "/bot/register"
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := common.GetUser(r)
 	if err != nil {
@@ -32,26 +44,38 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := registerFormData{
+		PageTitle: "Register",
+	}
+
 	r.ParseForm()
 	number := r.Form.Get("number")
 
 	if number == "" {
-		common.RespondServerError(w, errors.New("Number is required"))
+		data.ErrorMessage = "Number is required"
+		renderRegisterForm(w, data)
 		return
 	}
 
 	bot, err := models.CreateBot(common.GetDB(), user.ID, number)
 	if err != nil {
-		common.RespondServerError(w, errors.New("Bot creation error"))
+		data.ErrorMessage = err.Error()
+		renderRegisterForm(w, data)
 		return
 	}
 
 	http.Redirect(w, r, "/bot/"+bot.ID+"/verify", http.StatusFound)
 }
 
+//
+// Cycle
+//
+
+// CycleHandler renders route POST "/bot/{botID}/cycle"
 func CycleHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := common.GetUser(r)
 	if err != nil {
+		common.RedirectToLogin(w, r)
 		return
 	}
 
@@ -70,30 +94,31 @@ func CycleHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/account", http.StatusFound)
 }
 
-// Verify bot
+//
+// Verify
+//
 
 type verifyFormData struct {
-	PageTitle string
-	Error     string
-	Bot       models.Bot
-	Protocol  string
-	Host      string
+	PageTitle    string
+	ErrorMessage string
+	Bot          models.Bot
+	Protocol     string
+	Host         string
 }
 
+// VerifyFormHandler renders route GET "/bot/{botID}/verify"
 func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
-	var errorDisplay string
+	data := verifyFormData{
+		PageTitle: "Verify",
+		Protocol:  common.WebSocketProtocol(),
+		Host:      r.Host,
+	}
 
 	bot, err := findBot(r)
 	if err != nil {
-		errorDisplay = err.Error()
-	}
-
-	data := verifyFormData{
-		PageTitle: "Verify",
-		Error:     errorDisplay,
-		Bot:       bot,
-		Protocol:  common.WebSocketProtocol(),
-		Host:      r.Host,
+		data.ErrorMessage = err.Error()
+	} else {
+		data.Bot = bot
 	}
 
 	templates := template.Must(template.ParseFiles(
@@ -105,6 +130,7 @@ func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
 
 var upgrader = websocket.Upgrader{}
 
+// VerifyHandler renders route GET "/bot/{botID}/verify/ws"
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := findBot(r)
 	if err != nil {
@@ -128,22 +154,32 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if err = common.SignIn(bot, out); err != nil {
-		err = bot.MarkVerified(common.GetDB())
-		if err != nil {
-			log.Println(err)
-		}
+		log.Printf("Sign in error: %v", err)
 		err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
 		if err != nil {
 			log.Println("Write message error: ", err)
 		}
+		return
+	}
+
+	err = bot.MarkVerified(common.GetDB())
+	if err != nil {
+		log.Println(err)
+	}
+	err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
+	if err != nil {
+		log.Println("Write message error: ", err)
 	}
 }
 
-// Send message
+//
+// Send
+//
+
 type sendFormData struct {
-	PageTitle string
-	Error     string
-	Bot       models.Bot
+	PageTitle    string
+	ErrorMessage string
+	Bot          models.Bot
 }
 
 func renderSendForm(w http.ResponseWriter, data sendFormData) {
@@ -151,27 +187,32 @@ func renderSendForm(w http.ResponseWriter, data sendFormData) {
 	templates.ExecuteTemplate(w, "main", data)
 }
 
+// SendFormHandler renders route GET "/bot/{botID}/send"
 func SendFormHandler(w http.ResponseWriter, r *http.Request) {
-	var displayError string
-	bot, err := findBot(r)
-	if err != nil {
-		displayError = err.Error()
-	}
-
 	data := sendFormData{
 		PageTitle: "Send",
-		Error:     displayError,
-		Bot:       bot,
 	}
 
+	bot, err := findBot(r)
+	if err != nil {
+		data.ErrorMessage = err.Error()
+		renderSendForm(w, data)
+		return
+	}
+
+	data.Bot = bot
 	renderSendForm(w, data)
 }
 
+// SendHandler renders route POST "/bot/{botID}/send"
 func SendHandler(w http.ResponseWriter, r *http.Request) {
-	var displayError string
+	data := sendFormData{
+		PageTitle: "Send",
+	}
 	bot, err := findBot(r)
 	if err != nil {
-		displayError = err.Error()
+		data.ErrorMessage = err.Error()
+		renderSendForm(w, data)
 		return
 	}
 
@@ -180,14 +221,9 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.Form.Get("message")
 
 	if err = common.SendMessage(bot, recipient, message); err != nil {
-		common.RespondServerError(w, err)
+		data.ErrorMessage = err.Error()
+		renderSendForm(w, data)
 		return
-	}
-
-	data := sendFormData{
-		PageTitle: "Send",
-		Error:     displayError,
-		Bot:       bot,
 	}
 
 	renderSendForm(w, data)
@@ -197,6 +233,7 @@ type sendResponse struct {
 	Result string `json:"result"`
 }
 
+// SendAPIHandler renders route "/v1/bot/{token}/send"
 func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(common.GetDB(), token)
@@ -232,38 +269,49 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	common.RespondSuccess(w, res)
 }
 
-// Receive messages
+//
+// Receive
+//
+
 type message struct {
 	Source    string
 	Timestamp string
 	Body      string
 }
 
-type receiveFormData struct {
-	PageTitle string
-	Error     string
-	Number    string
-	Messages  []message
+type receiveResponse struct {
+	Messages []message  `json:"messages"`
+	Bot      models.Bot `json:"bot"`
 }
 
-func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
-	var displayError string
-	bot, err := findBot(r)
-	if err != nil {
-		displayError = err.Error()
-	}
+type receiveFormData struct {
+	PageTitle    string
+	ErrorMessage string
+	Number       string
+	Messages     []message
+}
 
+// ReceiveFormHandler renders route GET "/bot/{botID}/receive"
+func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 	data := receiveFormData{
 		PageTitle: "Receive",
-		Error:     displayError,
-		Number:    bot.Number,
 		Messages:  []message{},
 	}
 
-	templates := template.Must(template.ParseFiles("views/layouts/main.tmpl", "views/bot/receive.tmpl"))
+	bot, err := findBot(r)
+	if err != nil {
+		data.ErrorMessage = err.Error()
+	} else {
+		data.Number = bot.Number
+	}
+
+	templates := template.Must(template.ParseFiles(
+		"views/layouts/main.tmpl",
+		"views/bot/receive.tmpl"))
 	templates.ExecuteTemplate(w, "main", data)
 }
 
+// ReceiveHandler renders route GET "/bot/{botID}/receive/ws"
 func ReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := findBot(r)
 	if err != nil {
@@ -276,12 +324,46 @@ func ReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Delete bot
+// ReceiveAPIHandler renders route GET "/v1/bot/{token}/receive"
+func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	bot, err := models.FindBotByToken(common.GetDB(), token)
+	if err != nil {
+		common.RespondBadRequest(w, err)
+	}
 
-type deleteResponse struct {
-	Result string `json:"result"`
+	err = common.ReceiveMessages(bot)
+	if err != nil {
+		return
+	}
+
+	out := receiveResponse{
+		Bot: bot,
+	}
+
+	common.RespondSuccess(w, out)
 }
 
+//
+// Info
+//
+
+// InfoAPIHandler renders route GET "/v1/bot/{token}"
+func InfoAPIHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	bot, err := models.FindBotByToken(common.GetDB(), token)
+	if err != nil {
+		common.RespondBadRequest(w, err)
+	}
+
+	common.RespondSuccess(w, bot)
+}
+
+//
+// Delete
+//
+
+// DeleteHandler renders route POST "/bot/{botID}/delete"
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := common.GetUser(r)
 	if err != nil {
@@ -306,6 +388,10 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/account", http.StatusFound)
 }
+
+//
+// Helpers
+//
 
 func findBot(r *http.Request) (models.Bot, error) {
 	var bot models.Bot

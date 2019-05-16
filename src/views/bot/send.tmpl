@@ -1,7 +1,7 @@
 {{ define "content" }}
-{{ if .Error}}
+{{ if .ErrorMessage}}
 <div class="notification is-warning">
-  {{ .Error }}
+  {{ .ErrorMessage }}
 </div>
 {{ end }}
 

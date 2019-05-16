@@ -48,14 +48,9 @@
 
               {{ if .PasswordStrengthError }}
               <p class="help is-danger">
+                This password would take {{ .PasswordCrackTime }} to crack.
               </p>
               {{ end }}
-              <p class="help is-danger">
-                This password would take {{ .PasswordCrackTime }} to crack.
-                {{ range .PasswordSuggestions }}
-                {{ .Suggestion}}
-                {{ end }}
-              </p>
             </div>
 
             <div class="field">

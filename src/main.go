@@ -38,6 +38,7 @@ func main() {
 		r.Get("/bot/{botID}", controllers.SendFormHandler)
 		r.Get("/bot/{botID}/send", controllers.SendFormHandler)
 		r.Post("/bot/{botID}/send", controllers.SendHandler)
+		r.Get("/bot/{botID}/receive/ws", controllers.ReceiveHandler)
 		r.Get("/bot/{botID}/receive", controllers.ReceiveFormHandler)
 	})
 
@@ -53,7 +54,9 @@ func main() {
 
 	// api routes
 	r.Group(func(r chi.Router) {
+		r.Get("/v1/bot/{token}", controllers.InfoAPIHandler)
 		r.Post("/v1/bot/{token}/send", controllers.SendAPIHandler)
+		r.Get("/v1/bot/{token}/receive", controllers.ReceiveAPIHandler)
 	})
 
 	// static files
