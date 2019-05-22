@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	"regexp"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -29,7 +28,7 @@ type accountFormData struct {
 func AccountFormHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUser(r)
 	if err != nil {
-		RedirectToLogin(w, r)
+		redirectToLogin(w, r)
 	}
 
 	data := accountFormData{
@@ -73,13 +72,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.Form.Get("password")
 
 	if email == "" || password == "" {
-		RespondUnauthorized(w, errors.New("Missing username or password"))
+		respondUnauthorized(w, errors.New("Missing username or password"))
 		return
 	}
 
 	user, err := models.CheckUser(models.GetDB(), email, password)
 	if err != nil {
-		RespondUnauthorized(w, errors.New("Incorrect username or password"))
+		respondUnauthorized(w, errors.New("Incorrect username or password"))
 		return
 	}
 
@@ -113,7 +112,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookie)
 
-	RedirectToLogin(w, r)
+	redirectToLogin(w, r)
 }
 
 //
@@ -141,7 +140,7 @@ func renderSetupForm(w http.ResponseWriter, data setupFormData) {
 func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
 	count, err := models.CountUsers(models.GetDB())
 	if count > 0 || err != nil {
-		RedirectToLogin(w, r)
+		redirectToLogin(w, r)
 		return
 	}
 
@@ -156,7 +155,7 @@ func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	count, err := models.CountUsers(models.GetDB())
 	if count > 0 || err != nil {
-		RedirectToLogin(w, r)
+		redirectToLogin(w, r)
 		return
 	}
 
@@ -221,19 +220,5 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RedirectToLogin(w, r)
-}
-
-//
-// Helpers
-//
-
-func validateEmail(s string) bool {
-	var rx = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-
-	if len(s) < 255 && rx.MatchString(s) {
-		return true
-	}
-
-	return false
+	redirectToLogin(w, r)
 }

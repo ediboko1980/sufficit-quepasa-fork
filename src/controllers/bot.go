@@ -39,7 +39,7 @@ func RegisterFormHandler(w http.ResponseWriter, r *http.Request) {
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUser(r)
 	if err != nil {
-		RedirectToLogin(w, r)
+		redirectToLogin(w, r)
 		return
 	}
 
@@ -74,7 +74,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 func CycleHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUser(r)
 	if err != nil {
-		RedirectToLogin(w, r)
+		redirectToLogin(w, r)
 		return
 	}
 
@@ -109,7 +109,7 @@ type verifyFormData struct {
 func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
 	data := verifyFormData{
 		PageTitle: "Verify",
-		Protocol:  WebSocketProtocol(),
+		Protocol:  webSocketProtocol(),
 		Host:      r.Host,
 	}
 
@@ -237,35 +237,35 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
-	postParams, err := ParseJSONBody(r)
+	postParams, err := parseJSONBody(r)
 	if err != nil {
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
 	number, numberOk := postParams["number"].(string)
 	if !numberOk {
 		err = errors.New("'number' parameter is required")
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
 	message, messageOk := postParams["message"].(string)
 	if !messageOk {
 		err = errors.New("'message' parameter is required")
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
 	if err = models.SendMessage(bot.ID, number, message); err != nil {
-		RespondServerError(w, err)
+		respondServerError(w, err)
 	}
 
 	res := &sendResponse{
 		Result: "ok",
 	}
 
-	RespondSuccess(w, res)
+	respondSuccess(w, res)
 }
 
 //
@@ -328,7 +328,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
 	err = models.ReceiveMessages(bot.ID)
@@ -340,7 +340,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 		Bot: bot,
 	}
 
-	RespondSuccess(w, out)
+	respondSuccess(w, out)
 }
 
 //
@@ -352,10 +352,10 @@ func InfoAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		RespondBadRequest(w, err)
+		respondBadRequest(w, err)
 	}
 
-	RespondSuccess(w, bot)
+	respondSuccess(w, bot)
 }
 
 //
