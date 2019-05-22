@@ -139,6 +139,12 @@ func renderSetupForm(w http.ResponseWriter, data setupFormData) {
 
 // SetupFormHandler renders route GET "/setup"
 func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
+	count, err := models.CountUsers(models.GetDB())
+	if count > 0 || err != nil {
+		RedirectToLogin(w, r)
+		return
+	}
+
 	data := setupFormData{
 		PageTitle: "Setup",
 	}
@@ -148,6 +154,12 @@ func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
 
 // SetupHandler renders route POST "/setup"
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
+	count, err := models.CountUsers(models.GetDB())
+	if count > 0 || err != nil {
+		RedirectToLogin(w, r)
+		return
+	}
+
 	data := setupFormData{
 		PageTitle: "Setup",
 	}
