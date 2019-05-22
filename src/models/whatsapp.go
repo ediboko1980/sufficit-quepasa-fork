@@ -1,4 +1,4 @@
-package common
+package models
 
 import (
 	"bytes"
@@ -12,10 +12,9 @@ import (
 
 	wa "github.com/Rhymen/go-whatsapp"
 	qrcode "github.com/skip2/go-qrcode"
-	"gitlab.com/digiresilience/link/quepasa/models"
 )
 
-func SignIn(bot models.Bot, out chan<- []byte) error {
+func SignIn(botID string, out chan<- []byte) error {
 	con, err := wa.NewConn(5 * time.Second)
 	if err != nil {
 		return err
@@ -38,11 +37,11 @@ func SignIn(bot models.Bot, out chan<- []byte) error {
 		return err
 	}
 
-	return writeSession(bot.ID, session)
+	return writeSession(botID, session)
 }
 
 func writeSession(botID string, session wa.Session) error {
-	_, err := models.GetOrCreateStore(GetDB(), botID)
+	_, err := GetOrCreateStore(GetDB(), botID)
 	if err != nil {
 		return err
 	}
@@ -53,7 +52,7 @@ func writeSession(botID string, session wa.Session) error {
 		return err
 	}
 
-	_, err = models.UpdateStore(GetDB(), botID, buff.Bytes())
+	_, err = UpdateStore(GetDB(), botID, buff.Bytes())
 	if err != nil {
 		return err
 	}
@@ -63,7 +62,7 @@ func writeSession(botID string, session wa.Session) error {
 
 func readSession(botID string) (wa.Session, error) {
 	var session wa.Session
-	store, err := models.GetStore(GetDB(), botID)
+	store, err := GetStore(GetDB(), botID)
 	if err != nil {
 		return session, err
 	}
@@ -78,13 +77,13 @@ func readSession(botID string) (wa.Session, error) {
 	return session, nil
 }
 
-func SendMessage(bot models.Bot, recipient string, message string) error {
+func SendMessage(botID string, recipient string, message string) error {
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
 		return err
 	}
 
-	session, err := readSession(bot.ID)
+	session, err := readSession(botID)
 	if err != nil {
 		return err
 	}
@@ -94,15 +93,17 @@ func SendMessage(bot models.Bot, recipient string, message string) error {
 		return err
 	}
 
-	if err := writeSession(bot.ID, session); err != nil {
+	if err := writeSession(botID, session); err != nil {
 		return err
 	}
 
 	<-time.After(3 * time.Second)
 
+	formattedRecipient := CleanPhoneNumber(recipient)
+
 	msg := wa.TextMessage{
 		Info: wa.MessageInfo{
-			RemoteJid: recipient + "@s.whatsapp.net",
+			RemoteJid: formattedRecipient + "@s.whatsapp.net",
 		},
 		Text: message,
 	}
@@ -112,14 +113,14 @@ func SendMessage(bot models.Bot, recipient string, message string) error {
 		return err
 	}
 
-	if err := writeSession(bot.ID, session); err != nil {
+	if err := writeSession(botID, session); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func ReceiveMessages(bot models.Bot) error {
+func ReceiveMessages(botID string) error {
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
 		return err
@@ -127,7 +128,7 @@ func ReceiveMessages(bot models.Bot) error {
 
 	con.AddHandler(&waHandler{con})
 
-	session, err := readSession(bot.ID)
+	session, err := readSession(botID)
 	if err != nil {
 		return err
 	}
@@ -146,7 +147,7 @@ func ReceiveMessages(bot models.Bot) error {
 		return err
 	}
 
-	if err := writeSession(bot.ID, session); err != nil {
+	if err := writeSession(botID, session); err != nil {
 		return err
 	}
 

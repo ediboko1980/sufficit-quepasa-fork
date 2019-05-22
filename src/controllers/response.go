@@ -1,4 +1,4 @@
-package common
+package controllers
 
 import (
 	"encoding/json"

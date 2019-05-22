@@ -1,7 +1,6 @@
 package models
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,11 +79,5 @@ func (bot *Bot) Delete(db *sqlx.DB) error {
 }
 
 func (bot *Bot) FormattedNumber() string {
-	var out string
-	re := regexp.MustCompile("\\d*")
-	matches := re.FindAllString(bot.Number, -1)
-	if len(matches) > 0 {
-		out = matches[0]
-	}
-	return out
+	return CleanPhoneNumber(bot.Number)
 }

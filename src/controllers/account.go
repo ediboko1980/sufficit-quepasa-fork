@@ -11,7 +11,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
 	"github.com/nbutton23/zxcvbn-go"
-	"gitlab.com/digiresilience/link/quepasa/common"
 	"gitlab.com/digiresilience/link/quepasa/models"
 )
 
@@ -28,9 +27,9 @@ type accountFormData struct {
 
 // AccountFormHandler renders route GET "/account"
 func AccountFormHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := common.GetUser(r)
+	user, err := models.GetUser(r)
 	if err != nil {
-		common.RedirectToLogin(w, r)
+		RedirectToLogin(w, r)
 	}
 
 	data := accountFormData{
@@ -38,7 +37,7 @@ func AccountFormHandler(w http.ResponseWriter, r *http.Request) {
 		User:      user,
 	}
 
-	bots, err := models.FindAllBotsForUser(common.GetDB(), user.ID)
+	bots, err := models.FindAllBotsForUser(models.GetDB(), user.ID)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 	} else {
@@ -74,13 +73,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.Form.Get("password")
 
 	if email == "" || password == "" {
-		common.RespondUnauthorized(w, errors.New("Missing username or password"))
+		RespondUnauthorized(w, errors.New("Missing username or password"))
 		return
 	}
 
-	user, err := models.CheckUser(common.GetDB(), email, password)
+	user, err := models.CheckUser(models.GetDB(), email, password)
 	if err != nil {
-		common.RespondUnauthorized(w, errors.New("Incorrect username or password"))
+		RespondUnauthorized(w, errors.New("Incorrect username or password"))
 		return
 	}
 
@@ -114,7 +113,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookie)
 
-	common.RedirectToLogin(w, r)
+	RedirectToLogin(w, r)
 }
 
 //
@@ -190,7 +189,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := models.CheckUserExists(common.GetDB(), email)
+	exists, err := models.CheckUserExists(models.GetDB(), email)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 		renderSetupForm(w, data)
@@ -203,14 +202,14 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = models.CreateUser(common.GetDB(), email, password)
+	_, err = models.CreateUser(models.GetDB(), email, password)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 		renderSetupForm(w, data)
 		return
 	}
 
-	common.RedirectToLogin(w, r)
+	RedirectToLogin(w, r)
 }
 
 //

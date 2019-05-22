@@ -13,12 +13,10 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/test-go/testify v1.1.4 // indirect
 	github.com/trustelem/zxcvbn v1.0.1
-	gitlab.com/digiresilience/link/quepasa/common v0.0.0
 	gitlab.com/digiresilience/link/quepasa/models v0.0.0
+	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
 )
 
 replace gitlab.com/digiresilience/link/quepasa/controllers => ./
-
-replace gitlab.com/digiresilience/link/quepasa/common => ../common
 
 replace gitlab.com/digiresilience/link/quepasa/models => ../models
