@@ -33,8 +33,8 @@ func GetUser(r *http.Request) (User, error) {
 		return user, err
 	}
 
-	userID := claims["user_id"].(string)
-	if userID == "" {
+	userID, ok := claims["user_id"].(string)
+	if !ok {
 		return user, errors.New("User ID missing")
 	}
 

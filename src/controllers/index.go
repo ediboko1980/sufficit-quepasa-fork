@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gitlab.com/digiresilience/link/quepasa/models"
 	"html/template"
 	"net/http"
 )
@@ -11,6 +12,12 @@ type indexData struct {
 
 // IndexHandler renders route GET "/"
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := models.GetUser(r)
+	if err != nil {
+		redirectToLogin(w, r)
+		return
+	}
+
 	data := indexData{
 		PageTitle: "Home",
 	}
