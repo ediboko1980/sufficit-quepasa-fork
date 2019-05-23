@@ -272,29 +272,22 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 // Receive
 //
 
-type message struct {
-	Source    string
-	Timestamp string
-	Body      string
-}
-
 type receiveResponse struct {
-	Messages []message  `json:"messages"`
-	Bot      models.Bot `json:"bot"`
+	Messages []models.Message `json:"messages"`
+	Bot      models.Bot       `json:"bot"`
 }
 
 type receiveFormData struct {
 	PageTitle    string
 	ErrorMessage string
 	Number       string
-	Messages     []message
+	Messages     []models.Message
 }
 
 // ReceiveFormHandler renders route GET "/bot/{botID}/receive"
 func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 	data := receiveFormData{
 		PageTitle: "Receive",
-		Messages:  []message{},
 	}
 
 	bot, err := findBot(r)
@@ -304,23 +297,18 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 		data.Number = bot.Number
 	}
 
+	messages, err := models.ReceiveMessages(bot.ID, 10)
+	if err != nil {
+		log.Printf("ERROR %v", err)
+		return
+	}
+
+	data.Messages = messages
+
 	templates := template.Must(template.ParseFiles(
 		"views/layouts/main.tmpl",
 		"views/bot/receive.tmpl"))
 	templates.ExecuteTemplate(w, "main", data)
-}
-
-// ReceiveHandler renders route GET "/bot/{botID}/receive/ws"
-func ReceiveHandler(w http.ResponseWriter, r *http.Request) {
-	bot, err := findBot(r)
-	if err != nil {
-		return
-	}
-
-	err = models.ReceiveMessages(bot.ID)
-	if err != nil {
-		return
-	}
 }
 
 // ReceiveAPIHandler renders route GET "/v1/bot/{token}/receive"
@@ -331,13 +319,15 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 		respondBadRequest(w, err)
 	}
 
-	err = models.ReceiveMessages(bot.ID)
+	messages, err := models.ReceiveMessages(bot.ID, 10)
 	if err != nil {
+		log.Printf("ERROR %v", err)
 		return
 	}
 
 	out := receiveResponse{
-		Bot: bot,
+		Bot:      bot,
+		Messages: messages,
 	}
 
 	respondSuccess(w, out)

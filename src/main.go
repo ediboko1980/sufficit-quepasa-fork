@@ -39,7 +39,6 @@ func main() {
 		r.Get("/bot/{botID}", controllers.SendFormHandler)
 		r.Get("/bot/{botID}/send", controllers.SendFormHandler)
 		r.Post("/bot/{botID}/send", controllers.SendHandler)
-		r.Get("/bot/{botID}/receive/ws", controllers.ReceiveHandler)
 		r.Get("/bot/{botID}/receive", controllers.ReceiveFormHandler)
 	})
 

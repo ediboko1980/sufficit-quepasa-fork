@@ -5,9 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
@@ -120,42 +117,59 @@ func SendMessage(botID string, recipient string, message string) error {
 	return nil
 }
 
-func ReceiveMessages(botID string) error {
+func ReceiveMessages(botID string, limit int) ([]Message, error) {
+	messages := []Message{}
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
-		return err
+		return messages, err
 	}
-
-	con.AddHandler(&waHandler{con})
 
 	session, err := readSession(botID)
 	if err != nil {
-		return err
+		return messages, err
 	}
 
 	session, err = con.RestoreWithSession(session)
 	if err != nil {
-		return err
+		return messages, err
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	ch := make(chan Message)
+	done := make(chan bool)
+	con.AddHandler(&waHandler{con, ch})
+
+	go func() {
+		for {
+			message := <-ch
+			messages = append(messages, message)
+			if len(messages) >= limit {
+				done <- true
+			}
+		}
+	}()
+
+	select {
+	case <-done:
+		log.Println("Done")
+	case <-time.After(10 * time.Second):
+		log.Println("Timeout after 10 seconds")
+	}
 
 	session, err = con.Disconnect()
 	if err != nil {
-		return err
+		return messages, err
 	}
 
 	if err := writeSession(botID, session); err != nil {
-		return err
+		return messages, err
 	}
 
-	return nil
+	return messages, nil
 }
 
 type waHandler struct {
 	con *wa.Conn
+	ch  chan<- Message
 }
 
 func (h *waHandler) HandleError(err error) {
@@ -170,6 +184,13 @@ func (h *waHandler) HandleError(err error) {
 	}
 }
 
-func (*waHandler) HandleTextMessage(message wa.TextMessage) {
-	log.Printf("%v\n%v\n%v\n%v\n%v\n\n", message.Info.Timestamp, message.Info.Id, message.Info.RemoteJid, message.Info.QuotedMessageID, message.Text)
+func (h *waHandler) HandleTextMessage(message wa.TextMessage) {
+	msg := Message{
+		ID:        message.Info.Id,
+		Source:    message.Info.RemoteJid,
+		Timestamp: time.Unix(int64(message.Info.Timestamp), 0).Format(time.RFC3339),
+		Body:      message.Text,
+	}
+
+	h.ch <- msg
 }
