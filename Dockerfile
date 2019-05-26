@@ -25,6 +25,7 @@ WORKDIR /app
 COPY --from=builder /build/quepasa ./quepasa
 COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
+COPY --from=builder /build/migrations ./migrations
 
 EXPOSE 3000
 ENV PORT=3000

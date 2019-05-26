@@ -2,19 +2,31 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/go-chi/jwtauth"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 )
 
-// GetDB returns a database connection for connection the string
-// set in the DB_CONNECTION environment variable
+// GetDB returns a database connection for the given
+// database environment variables
 func GetDB() *sqlx.DB {
-	connection := os.Getenv("DB_CONNECTION")
+	host := os.Getenv("PGHOST")
+	database := os.Getenv("PGDATABASE")
+	port := os.Getenv("PGPORT")
+	user := os.Getenv("PGUSER")
+	password := os.Getenv("PGPASSWORD")
+	ssl := os.Getenv("PGSSLMODE")
+	connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
+		host, database, port, user, password, ssl)
 	db, err := sqlx.Connect("postgres", connection)
 
 	if err != nil {
@@ -50,4 +62,39 @@ func CleanPhoneNumber(number string) string {
 		out = matches[0]
 	}
 	return out
+}
+
+// MigrateToLatest updates the database to the latest schema
+func MigrateToLatest() error {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	migrationsDir := filepath.Join(workDir, "migrations")
+	fullPath := fmt.Sprintf("file://%s", migrationsDir)
+	host := os.Getenv("PGHOST")
+	database := os.Getenv("PGDATABASE")
+	port := os.Getenv("PGPORT")
+	user := os.Getenv("PGUSER")
+	password := os.Getenv("PGPASSWORD")
+	ssl := os.Getenv("PGSSLMODE")
+	connection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		user, password, host, port, database, ssl)
+
+	fmt.Println("CONNECTION " + connection)
+
+	m, err := migrate.New(
+		fullPath,
+		connection)
+	if err != nil {
+		return err
+	}
+
+	err = m.Up()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

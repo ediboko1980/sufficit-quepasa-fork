@@ -16,7 +16,7 @@ type Store struct {
 
 func storeExists(db *sqlx.DB, botID string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) FROM signalstore WHERE bot_id = $1", botID)
+	err := db.Get(&count, "SELECT count(*) FROM sessionstore WHERE bot_id = $1", botID)
 	return count > 0, err
 }
 
@@ -41,7 +41,7 @@ func GetOrCreateStore(db *sqlx.DB, botID string) (Store, error) {
 func CreateStore(db *sqlx.DB, botID string) (Store, error) {
 	var user Store
 	now := time.Now().Format(time.RFC3339)
-	query := `INSERT INTO signalstore
+	query := `INSERT INTO sessionstore
     (bot_id, created_at, updated_at)
     VALUES ($1, $2, $3)`
 	if _, err := db.Exec(query, botID, now, now); err != nil {
@@ -53,19 +53,19 @@ func CreateStore(db *sqlx.DB, botID string) (Store, error) {
 
 func GetStore(db *sqlx.DB, botID string) (Store, error) {
 	var store Store
-	err := db.Get(&store, "SELECT * FROM signalstore WHERE bot_id = $1", botID)
+	err := db.Get(&store, "SELECT * FROM sessionstore WHERE bot_id = $1", botID)
 	return store, err
 }
 
 func UpdateStore(db *sqlx.DB, botID string, data []byte) ([]byte, error) {
 	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE signalstore SET data = ($1::bytea), updated_at = $2 WHERE bot_id = $3"
+	query := "UPDATE sessionstore SET data = ($1::bytea), updated_at = $2 WHERE bot_id = $3"
 	_, err := db.Exec(query, data, now, botID)
 	return data, err
 }
 
 func DeleteStore(db *sqlx.DB, botID string) error {
-	query := "DELETE FROM signalstore WHERE bot_id = $1"
+	query := "DELETE FROM sessionstore WHERE bot_id = $1"
 	_, err := db.Exec(query, botID)
 	return err
 }

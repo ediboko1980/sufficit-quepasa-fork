@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,9 +12,15 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"gitlab.com/digiresilience/link/quepasa/controllers"
+	"gitlab.com/digiresilience/link/quepasa/models"
 )
 
 func main() {
+	err := models.MigrateToLatest()
+	if err != nil {
+		log.Printf("Migration error %s", err.Error())
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.RequestID)

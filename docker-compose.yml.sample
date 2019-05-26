@@ -7,5 +7,10 @@ services:
       - "3000:3000"
     environment:
       - APP_ENV=production
+      - PGHOST=localhost
+      - PGDATABASE=quepasa_dev
+      - PGPORT=5432
+      - PGUSER=quepasa
+      - PGPASSWORD=quepasa
+      - PGSSLMODE=enable
       - SIGNING_SECRET=changeme
-      - DB_CONNECTION=user=siggy dbname=siggy_dev
