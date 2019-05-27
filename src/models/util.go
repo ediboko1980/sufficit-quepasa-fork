@@ -82,8 +82,6 @@ func MigrateToLatest() error {
 	connection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		user, password, host, port, database, ssl)
 
-	fmt.Println("CONNECTION " + connection)
-
 	m, err := migrate.New(
 		fullPath,
 		connection)
@@ -92,7 +90,7 @@ func MigrateToLatest() error {
 	}
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && err != migrate.ErrNoChange {
 		return err
 	}
 
