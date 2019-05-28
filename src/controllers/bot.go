@@ -297,10 +297,12 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 		data.Number = bot.Number
 	}
 
-	messages, err := models.ReceiveMessages(bot.ID, 10)
+	queryValues := r.URL.Query()
+	timestamp := queryValues.Get("timestamp")
+
+	messages, err := models.ReceiveMessages(bot.ID, timestamp)
 	if err != nil {
-		log.Printf("ERROR %v", err)
-		return
+		data.ErrorMessage = err.Error()
 	}
 
 	data.Messages = messages
@@ -319,7 +321,10 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 		respondBadRequest(w, err)
 	}
 
-	messages, err := models.ReceiveMessages(bot.ID, 10)
+	queryValues := r.URL.Query()
+	timestamp := queryValues.Get("timestamp")
+
+	messages, err := models.ReceiveMessages(bot.ID, timestamp)
 	if err != nil {
 		log.Printf("ERROR %v", err)
 		return

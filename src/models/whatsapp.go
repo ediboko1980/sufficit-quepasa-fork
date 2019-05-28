@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"fmt"
 	"log"
+	"sort"
+	"strconv"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
+	"github.com/Rhymen/go-whatsapp/binary/proto"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -117,7 +121,11 @@ func SendMessage(botID string, recipient string, message string) error {
 	return nil
 }
 
-func ReceiveMessages(botID string, limit int) ([]Message, error) {
+//
+// ReceiveMessages
+//
+
+func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	messages := []Message{}
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
@@ -134,25 +142,14 @@ func ReceiveMessages(botID string, limit int) ([]Message, error) {
 		return messages, err
 	}
 
-	ch := make(chan Message)
-	done := make(chan bool)
-	con.AddHandler(&waHandler{con, ch})
+	userIDs, err := fetchUserIDs(con)
+	if err != nil {
+		return messages, err
+	}
 
-	go func() {
-		for {
-			message := <-ch
-			messages = append(messages, message)
-			if len(messages) >= limit {
-				done <- true
-			}
-		}
-	}()
-
-	select {
-	case <-done:
-		log.Println("Done")
-	case <-time.After(10 * time.Second):
-		log.Println("Timeout after 10 seconds")
+	messages, err = fetchMessages(con, userIDs, timestamp)
+	if err != nil {
+		return messages, err
 	}
 
 	session, err = con.Disconnect()
@@ -167,9 +164,142 @@ func ReceiveMessages(botID string, limit int) ([]Message, error) {
 	return messages, nil
 }
 
+func loadMessages(con *wa.Conn, userID string, messageID string, count int) ([]interface{}, error) {
+	node, err := con.LoadMessages(userID, messageID, count)
+	if err != nil {
+		return nil, err
+	}
+
+	messages, ok := node.Content.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Unexpected message content")
+	}
+
+	return messages, nil
+}
+
+func parseWebMessage(rawMessage interface{}) (Message, error) {
+	message := Message{}
+	webMsg, ok := rawMessage.(*proto.WebMessageInfo)
+	if !ok {
+		return message, fmt.Errorf("Unexpected message content")
+	}
+
+	message.ID = *webMsg.Key.Id
+	message.Source = *webMsg.Key.RemoteJid
+	message.Timestamp = int64(*webMsg.MessageTimestamp)
+
+	if webMsg.Message != nil {
+		if webMsg.Message.Conversation != nil {
+			message.Body = *webMsg.Message.Conversation
+		} else if webMsg.Message.ExtendedTextMessage != nil {
+			message.Body = *webMsg.Message.ExtendedTextMessage.Text
+		}
+	}
+
+	return message, nil
+}
+
+func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message, error) {
+	messages := []Message{}
+	count := 5
+	oldestMessageID := ""
+	oldestTimestamp := time.Now().Unix()
+	foundOldMessage := false
+	noOlderMessages := false
+
+	for {
+		rawMessages, err := loadMessages(con, userID, oldestMessageID, count)
+		if err != nil {
+			return messages, err
+		}
+
+		noOlderMessages = count > len(rawMessages)
+
+		for _, rm := range rawMessages {
+			message, err := parseWebMessage(rm)
+			if err != nil {
+				return messages, err
+			}
+
+			if message.Timestamp < oldestTimestamp {
+				oldestTimestamp = message.Timestamp
+			}
+
+			if message.Timestamp >= timestamp {
+				messages = append(messages, message)
+			}
+		}
+
+		count = count * 2
+
+		// break if we found a message older than the timestamp or
+		// if the number of messages returned is less than the limit
+		// otherwise double the number of messages fetched and try again
+		if foundOldMessage || noOlderMessages || count > 40 {
+			break
+		} else {
+			messages = []Message{}
+		}
+	}
+
+	return messages, nil
+}
+
+func fetchUserIDs(con *wa.Conn) (map[string]bool, error) {
+	userIDs := make(map[string]bool)
+	ch := make(chan string)
+	done := make(chan bool)
+
+	con.AddHandler(&waHandler{con, ch})
+
+	go func() {
+		for {
+			select {
+			case userID := <-ch:
+				userIDs[userID] = true
+			case <-time.After(2 * time.Second):
+				done <- true
+			}
+		}
+	}()
+
+	<-done
+
+	con.RemoveHandlers()
+
+	return userIDs, nil
+}
+
+func fetchMessages(con *wa.Conn, userIDs map[string]bool, timestamp string) ([]Message, error) {
+	messages := []Message{}
+
+	var t int64
+	var err error
+	if timestamp != "" {
+		t, err = strconv.ParseInt(timestamp, 10, 64)
+		if err != nil {
+			return messages, err
+		}
+	}
+
+	for userID, _ := range userIDs {
+		userMsgs, err := fetchUserMessages(con, userID, t)
+		if err != nil {
+			return messages, err
+		}
+
+		messages = append(messages, userMsgs...)
+	}
+
+	sort.Sort(ByTimestamp(messages))
+
+	return messages, nil
+}
+
 type waHandler struct {
 	con *wa.Conn
-	ch  chan<- Message
+	ch  chan<- string
 }
 
 func (h *waHandler) HandleError(err error) {
@@ -184,13 +314,7 @@ func (h *waHandler) HandleError(err error) {
 	}
 }
 
-func (h *waHandler) HandleTextMessage(message wa.TextMessage) {
-	msg := Message{
-		ID:        message.Info.Id,
-		Source:    message.Info.RemoteJid,
-		Timestamp: time.Unix(int64(message.Info.Timestamp), 0).Format(time.RFC3339),
-		Body:      message.Text,
-	}
-
-	h.ch <- msg
+func (h *waHandler) HandleRawMessage(message *proto.WebMessageInfo) {
+	jid := *message.Key.RemoteJid
+	h.ch <- jid
 }

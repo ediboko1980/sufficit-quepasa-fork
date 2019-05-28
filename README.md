@@ -104,9 +104,11 @@ POST /bot/<TOKEN>/send
 
 ### Receive
 
+The "timestamp" query parameter is optional. A maximum of 40 messages per conversation will be returned.
+
 **request**
 ```
-GET /bot/<TOKEN>/receive
+GET /bot/<TOKEN>/receive?timestamp=1541265073783
 ```
 
 **response**
