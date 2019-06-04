@@ -1,4 +1,10 @@
-version: '3'
+version: '3.5'
+
+secrets:
+  pgpassword:
+    external: true
+  signing_secret:
+    external: true
 
 services:
   quepasa:
@@ -12,5 +18,7 @@ services:
       - PGPORT=5432
       - PGUSER=quepasa
       - PGPASSWORD=quepasa
+      # - PGPASSWORD_FILE=/secrets/pgpassword
       - PGSSLMODE=enable
-      - SIGNING_SECRET=changeme
+      # - SIGNING_SECRET=changeme
+      - SIGNING_SECRET_FILE=/secrets/signing_secret

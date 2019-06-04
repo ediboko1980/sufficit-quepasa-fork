@@ -26,10 +26,7 @@ COPY --from=builder /build/quepasa ./quepasa
 COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
 COPY --from=builder /build/migrations ./migrations
-
+COPY docker-entrypoint.sh /usr/local/bin/
 EXPOSE 3000
-ENV PORT=3000
-ENV APP_ENV=production
-ENV SIGNING_SECRET=changeme
-ENV DB_CONNECTION=
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["/app/quepasa"]
