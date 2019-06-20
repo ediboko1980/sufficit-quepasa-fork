@@ -1,7 +1,7 @@
 module gitlab.com/digiresilience/link/quepasa/models
 
 require (
-	github.com/Rhymen/go-whatsapp v0.0.2-0.20190511164245-5d5100902126
+	github.com/Rhymen/go-whatsapp v0.0.2
 	github.com/go-chi/chi v4.0.2+incompatible // indirect
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 	github.com/golang-migrate/migrate/v4 v4.3.1
