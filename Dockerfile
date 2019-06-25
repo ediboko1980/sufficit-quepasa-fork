@@ -1,5 +1,8 @@
 FROM golang:1.12.4-stretch as builder
 LABEL maintainer="Darren Clarke <darren@redaranj.com>"
+RUN mkdir /vendor
+WORKDIR /vendor
+COPY vendor .
 RUN mkdir /build
 WORKDIR /build
 COPY src .
