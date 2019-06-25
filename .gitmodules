@@ -1,0 +1,4 @@
+[submodule "go-whatsapp"]
+	path = vendor/go-whatsapp
+	url = https://github.com/redaranj/go-whatsapp.git
+  branch = fix/decrypt-panic

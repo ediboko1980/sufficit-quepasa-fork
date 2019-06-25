@@ -164,9 +164,12 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	return messages, nil
 }
 
-func loadMessages(con *wa.Conn, userID string, messageID string, count int) ([]interface{}, error) {
-	node, err := con.LoadMessages(userID, messageID, count)
-	if err != nil {
+func loadMessages(con *wa.Conn, userID string, count int) ([]interface{}, error) {
+	var messages []interface{}
+	node, err := con.LoadMessages(userID, "", count)
+	if err != nil && err == wa.ErrMessageNotFound {
+		return messages, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -203,13 +206,12 @@ func parseWebMessage(rawMessage interface{}) (Message, error) {
 func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message, error) {
 	messages := []Message{}
 	count := 5
-	oldestMessageID := ""
 	oldestTimestamp := time.Now().Unix()
 	foundOldMessage := false
 	noOlderMessages := false
 
 	for {
-		rawMessages, err := loadMessages(con, userID, oldestMessageID, count)
+		rawMessages, err := loadMessages(con, userID, count)
 		if err != nil {
 			return messages, err
 		}

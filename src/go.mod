@@ -14,3 +14,5 @@ replace gitlab.com/digiresilience/link/quepasa => ./
 replace gitlab.com/digiresilience/link/quepasa/controllers v0.0.0 => ./controllers
 
 replace gitlab.com/digiresilience/link/quepasa/models v0.0.0 => ./models
+
+replace github.com/Rhymen/go-whatsapp v0.0.2 => ../vendor/go-whatsapp
