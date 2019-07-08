@@ -326,8 +326,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := models.ReceiveMessages(bot.ID, timestamp)
 	if err != nil {
-		log.Printf("ERROR %v", err)
-		return
+		respondServerError(w, err)
 	}
 
 	out := receiveResponse{

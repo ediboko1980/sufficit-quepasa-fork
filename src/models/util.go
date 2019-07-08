@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
 	"github.com/go-chi/jwtauth"
 	"github.com/golang-migrate/migrate/v4"
@@ -28,6 +29,9 @@ func GetDB() *sqlx.DB {
 	connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
 		host, database, port, user, password, ssl)
 	db, err := sqlx.Connect("postgres", connection)
+	db.DB.SetMaxIdleConns(10)
+	db.DB.SetMaxOpenConns(100)
+	db.DB.SetConnMaxLifetime(3600 * time.Second)
 
 	if err != nil {
 		log.Fatalln(err)

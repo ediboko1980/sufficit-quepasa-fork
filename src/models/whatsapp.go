@@ -167,7 +167,7 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 func loadMessages(con *wa.Conn, userID string, count int) ([]interface{}, error) {
 	var messages []interface{}
 	node, err := con.LoadMessages(userID, "", count)
-	if err != nil && err == wa.ErrMessageNotFound {
+	if err != nil && err == wa.ErrServerRespondedWith404 {
 		return messages, nil
 	} else if err != nil {
 		return nil, err

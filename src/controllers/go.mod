@@ -1,7 +1,7 @@
 module gitlab.com/digiresilience/link/quepasa/controllers
 
 require (
-	github.com/Rhymen/go-whatsapp v0.0.2-0.20190511164245-5d5100902126
+	github.com/Rhymen/go-whatsapp v0.0.3-0.20190705131645-4c0e263c801b
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dlclark/regexp2 v1.1.6 // indirect
 	github.com/go-chi/chi v4.0.2+incompatible
