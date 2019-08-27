@@ -8,8 +8,34 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gitlab.com/digiresilience/link/quepasa/models"
 )
+
+//
+// Metrics
+//
+
+var messagesSent = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "quepasa_sent_messages_total",
+	Help: "Total sent messages",
+})
+
+var messageSendErrors = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "quepasa_send_message_errors_total",
+	Help: "Total message send errors",
+})
+
+var messagesReceived = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "quepasa_received_messages_total",
+	Help: "Total messages received",
+})
+
+var messageReceiveErrors = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "quepasa_receive_message_errors_total",
+	Help: "Total message receive errors",
+})
 
 //
 // Register
@@ -302,10 +328,13 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := models.ReceiveMessages(bot.ID, timestamp)
 	if err != nil {
+		messageReceiveErrors.Inc()
 		data.ErrorMessage = err.Error()
 	}
 
 	data.Messages = messages
+
+	messagesReceived.Add(float64(len(messages)))
 
 	templates := template.Must(template.ParseFiles(
 		"views/layouts/main.tmpl",
