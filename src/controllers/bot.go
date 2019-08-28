@@ -267,28 +267,33 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondBadRequest(w, err)
+		return
 	}
 
 	postParams, err := parseJSONBody(r)
 	if err != nil {
 		respondBadRequest(w, err)
+		return
 	}
 
 	number, numberOk := postParams["number"].(string)
 	if !numberOk {
 		err = errors.New("'number' parameter is required")
 		respondBadRequest(w, err)
+		return
 	}
 
 	message, messageOk := postParams["message"].(string)
 	if !messageOk {
 		err = errors.New("'message' parameter is required")
 		respondBadRequest(w, err)
+		return
 	}
 
 	if err = models.SendMessage(bot.ID, number, message); err != nil {
 		messageSendErrors.Inc()
 		respondServerError(w, err)
+		return
 	}
 
 	messagesSent.Inc()
@@ -354,6 +359,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondBadRequest(w, err)
+		return
 	}
 
 	queryValues := r.URL.Query()
@@ -363,6 +369,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		messageReceiveErrors.Inc()
 		respondServerError(w, err)
+		return
 	}
 
 	messagesReceived.Add(float64(len(messages)))
@@ -385,6 +392,7 @@ func InfoAPIHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondBadRequest(w, err)
+		return
 	}
 
 	respondSuccess(w, bot)
