@@ -246,10 +246,13 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.Form.Get("message")
 
 	if err = models.SendMessage(bot.ID, recipient, message); err != nil {
+		messageSendErrors.Inc()
 		data.ErrorMessage = err.Error()
 		renderSendForm(w, data)
 		return
 	}
+
+	messagesSent.Inc()
 
 	renderSendForm(w, data)
 }
@@ -284,8 +287,11 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = models.SendMessage(bot.ID, number, message); err != nil {
+		messageSendErrors.Inc()
 		respondServerError(w, err)
 	}
+
+	messagesSent.Inc()
 
 	res := &sendResponse{
 		Result: "ok",
@@ -355,8 +361,11 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := models.ReceiveMessages(bot.ID, timestamp)
 	if err != nil {
+		messageReceiveErrors.Inc()
 		respondServerError(w, err)
 	}
+
+	messagesReceived.Add(float64(len(messages)))
 
 	out := receiveResponse{
 		Bot:      bot,
