@@ -3,7 +3,8 @@ package models
 type Message struct {
 	ID        string `json:"id"`
 	Source    string `json:"source"`
-	Timestamp int64  `json:"timestamp"`
+	Recipient string `json:"recipient"`
+	Timestamp uint64 `json:"timestamp"`
 	Body      string `json:"body"`
 }
 

@@ -276,9 +276,9 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	number, numberOk := postParams["number"].(string)
-	if !numberOk {
-		err = errors.New("'number' parameter is required")
+	recipient, recipientOk := postParams["recipient"].(string)
+	if !recipientOk {
+		err = errors.New("'recipient' parameter is required")
 		respondBadRequest(w, err)
 		return
 	}
@@ -290,7 +290,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = models.SendMessage(bot.ID, number, message); err != nil {
+	if err = models.SendMessage(bot.ID, recipient, message); err != nil {
 		messageSendErrors.Inc()
 		respondServerError(w, err)
 		return

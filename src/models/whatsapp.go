@@ -187,16 +187,22 @@ func loadMessages(con *wa.Conn, userID string, count int) ([]interface{}, error)
 	return messages, nil
 }
 
-func parseWebMessage(rawMessage interface{}) (Message, error) {
+func parseWebMessage(rawMessage interface{}, userID string, currentUserID string) (Message, error) {
 	message := Message{}
 	webMsg, ok := rawMessage.(*proto.WebMessageInfo)
 	if !ok {
 		return message, fmt.Errorf("Unexpected message content")
 	}
 
-	message.ID = *webMsg.Key.Id
-	message.Source = *webMsg.Key.RemoteJid
-	message.Timestamp = int64(*webMsg.MessageTimestamp)
+	message.ID = webMsg.GetKey().GetId()
+	message.Timestamp = webMsg.GetMessageTimestamp()
+	if webMsg.GetKey().GetFromMe() {
+		message.Source = currentUserID
+		message.Recipient = webMsg.GetKey().GetRemoteJid()
+	} else {
+		message.Source = webMsg.GetKey().GetRemoteJid()
+		message.Recipient = currentUserID
+	}
 
 	if webMsg.Message != nil {
 		if webMsg.Message.Conversation != nil {
@@ -212,9 +218,10 @@ func parseWebMessage(rawMessage interface{}) (Message, error) {
 func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message, error) {
 	messages := []Message{}
 	count := 5
-	oldestTimestamp := time.Now().Unix()
+	oldestTimestamp := uint64(time.Now().Unix())
 	foundOldMessage := false
 	noOlderMessages := false
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 
 	for {
 		rawMessages, err := loadMessages(con, userID, count)
@@ -225,7 +232,7 @@ func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message,
 		noOlderMessages = count > len(rawMessages)
 
 		for _, rm := range rawMessages {
-			message, err := parseWebMessage(rm)
+			message, err := parseWebMessage(rm, userID, currentUserID)
 			if err != nil {
 				return messages, err
 			}
@@ -234,7 +241,7 @@ func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message,
 				oldestTimestamp = message.Timestamp
 			}
 
-			if message.Timestamp >= timestamp {
+			if message.Timestamp >= uint64(timestamp) {
 				messages = append(messages, message)
 			}
 		}
