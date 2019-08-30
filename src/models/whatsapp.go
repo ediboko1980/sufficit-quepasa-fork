@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -164,10 +165,15 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	return messages, nil
 }
 
+var ErrServerRespondedWith401 = errors.New("server responded with 401")
+
 func loadMessages(con *wa.Conn, userID string, count int) ([]interface{}, error) {
 	var messages []interface{}
 	node, err := con.LoadMessages(userID, "", count)
+
 	if err != nil && err == wa.ErrServerRespondedWith404 {
+		return messages, nil
+	} else if err != nil && err.Error() == ErrServerRespondedWith401.Error() {
 		return messages, nil
 	} else if err != nil {
 		return nil, err
