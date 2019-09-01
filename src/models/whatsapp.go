@@ -234,7 +234,7 @@ func (h *chatHandler) HandleError(err error) {
 		<-time.After(30 * time.Second)
 		err := h.con.Restore()
 		if err != nil {
-			log.Fatalf("Restore failed: %v", err)
+			log.Printf("Restore failed: %v", err)
 		}
 	} else {
 		log.Printf("Chat handler error: %v\n", err)
@@ -262,7 +262,7 @@ func (h *messageHandler) HandleError(err error) {
 		<-time.After(30 * time.Second)
 		err := h.con.Restore()
 		if err != nil {
-			log.Fatalf("Restore failed: %v", err)
+			log.Printf("Restore failed: %v", err)
 		}
 	} else {
 		log.Printf("Message handler error: %v\n", err)
