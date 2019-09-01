@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
-	"errors"
-	"fmt"
 	"log"
 	"sort"
 	"strconv"
@@ -133,6 +131,10 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 		return messages, err
 	}
 
+	allUserIDs := make(map[string]bool)
+	chatHandler := &chatHandler{con, allUserIDs}
+	con.AddHandler(chatHandler)
+
 	session, err := readSession(botID)
 	if err != nil {
 		return messages, err
@@ -143,12 +145,11 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 		return messages, err
 	}
 
-	userIDs, err := fetchUserIDs(con)
-	if err != nil {
-		return messages, err
-	}
+	<-time.After(3 * time.Second)
 
-	messages, err = fetchMessages(con, userIDs, timestamp)
+	con.RemoveHandlers()
+
+	messages, err = fetchMessages(con, chatHandler.userIDs, timestamp)
 	if err != nil {
 		return messages, err
 	}
@@ -165,130 +166,34 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	return messages, nil
 }
 
-var ErrServerRespondedWith401 = errors.New("server responded with 401")
-
-func loadMessages(con *wa.Conn, userID string, count int) ([]interface{}, error) {
-	var messages []interface{}
-	node, err := con.LoadMessages(userID, "", count)
-
-	if err != nil && err == wa.ErrServerRespondedWith404 {
-		return messages, nil
-	} else if err != nil && err.Error() == ErrServerRespondedWith401.Error() {
-		return messages, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	messages, ok := node.Content.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Unexpected message content")
-	}
-
-	return messages, nil
-}
-
-func parseWebMessage(rawMessage interface{}, userID string, currentUserID string) (Message, error) {
-	message := Message{}
-	webMsg, ok := rawMessage.(*proto.WebMessageInfo)
-	if !ok {
-		return message, fmt.Errorf("Unexpected message content")
-	}
-
-	message.ID = webMsg.GetKey().GetId()
-	message.Timestamp = webMsg.GetMessageTimestamp()
-	if webMsg.GetKey().GetFromMe() {
-		message.Source = currentUserID
-		message.Recipient = webMsg.GetKey().GetRemoteJid()
-	} else {
-		message.Source = webMsg.GetKey().GetRemoteJid()
-		message.Recipient = currentUserID
-	}
-
-	if webMsg.Message != nil {
-		if webMsg.Message.Conversation != nil {
-			message.Body = *webMsg.Message.Conversation
-		} else if webMsg.Message.ExtendedTextMessage != nil {
-			message.Body = *webMsg.Message.ExtendedTextMessage.Text
-		}
-	}
-
-	return message, nil
+func loadMessages(con *wa.Conn, userID string, count int) ([]Message, error) {
+	messages := []Message{}
+	handler := &messageHandler{con, messages}
+	con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
+	con.RemoveHandlers()
+	return handler.messages, nil
 }
 
 func fetchUserMessages(con *wa.Conn, userID string, timestamp int64) ([]Message, error) {
 	messages := []Message{}
-	count := 5
-	oldestTimestamp := uint64(time.Now().Unix())
-	foundOldMessage := false
-	noOlderMessages := false
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	count := 50
 
-	for {
-		rawMessages, err := loadMessages(con, userID, count)
-		if err != nil {
-			return messages, err
-		}
+	allMessages, err := loadMessages(con, userID, count)
+	if err != nil {
+		return messages, err
+	}
 
-		noOlderMessages = count > len(rawMessages)
-
-		for _, rm := range rawMessages {
-			message, err := parseWebMessage(rm, userID, currentUserID)
-			if err != nil {
-				return messages, err
-			}
-
-			if message.Timestamp < oldestTimestamp {
-				oldestTimestamp = message.Timestamp
-			}
-
-			if message.Timestamp >= uint64(timestamp) {
-				messages = append(messages, message)
-			}
-		}
-
-		count = count * 2
-
-		// break if we found a message older than the timestamp or
-		// if the number of messages returned is less than the limit
-		// otherwise double the number of messages fetched and try again
-		if foundOldMessage || noOlderMessages || count > 40 {
-			break
-		} else {
-			messages = []Message{}
+	for _, message := range allMessages {
+		if message.Timestamp >= uint64(timestamp) {
+			messages = append(messages, message)
 		}
 	}
 
 	return messages, nil
 }
 
-func fetchUserIDs(con *wa.Conn) (map[string]bool, error) {
-	userIDs := make(map[string]bool)
-	ch := make(chan string)
-	done := make(chan bool)
-
-	con.AddHandler(&waHandler{con, ch})
-
-	go func() {
-		for {
-			select {
-			case userID := <-ch:
-				userIDs[userID] = true
-			case <-time.After(2 * time.Second):
-				done <- true
-			}
-		}
-	}()
-
-	<-done
-
-	con.RemoveHandlers()
-
-	return userIDs, nil
-}
-
 func fetchMessages(con *wa.Conn, userIDs map[string]bool, timestamp string) ([]Message, error) {
 	messages := []Message{}
-
 	var t int64
 	var err error
 	if timestamp != "" {
@@ -299,6 +204,9 @@ func fetchMessages(con *wa.Conn, userIDs map[string]bool, timestamp string) ([]M
 	}
 
 	for userID, _ := range userIDs {
+		if string(userID[0]) == "+" {
+			continue
+		}
 		userMsgs, err := fetchUserMessages(con, userID, t)
 		if err != nil {
 			return messages, err
@@ -312,12 +220,16 @@ func fetchMessages(con *wa.Conn, userIDs map[string]bool, timestamp string) ([]M
 	return messages, nil
 }
 
-type waHandler struct {
-	con *wa.Conn
-	ch  chan<- string
+type chatHandler struct {
+	con     *wa.Conn
+	userIDs map[string]bool
 }
 
-func (h *waHandler) HandleError(err error) {
+func (h *chatHandler) ShouldCallSynchronously() bool {
+	return true
+}
+
+func (h *chatHandler) HandleError(err error) {
 	if _, ok := err.(*wa.ErrConnectionFailed); ok {
 		<-time.After(30 * time.Second)
 		err := h.con.Restore()
@@ -325,11 +237,50 @@ func (h *waHandler) HandleError(err error) {
 			log.Fatalf("Restore failed: %v", err)
 		}
 	} else {
-		log.Printf("Handler error: %v\n", err)
+		log.Printf("Chat handler error: %v\n", err)
 	}
 }
 
-func (h *waHandler) HandleRawMessage(message *proto.WebMessageInfo) {
-	jid := *message.Key.RemoteJid
-	h.ch <- jid
+func (h *chatHandler) HandleRawMessage(message *proto.WebMessageInfo) {
+	if message != nil && message.Key.RemoteJid != nil {
+		userID := *message.Key.RemoteJid
+		h.userIDs[userID] = true
+	}
+}
+
+type messageHandler struct {
+	con      *wa.Conn
+	messages []Message
+}
+
+func (h *messageHandler) ShouldCallSynchronously() bool {
+	return true
+}
+
+func (h *messageHandler) HandleError(err error) {
+	if _, ok := err.(*wa.ErrConnectionFailed); ok {
+		<-time.After(30 * time.Second)
+		err := h.con.Restore()
+		if err != nil {
+			log.Fatalf("Restore failed: %v", err)
+		}
+	} else {
+		log.Printf("Message handler error: %v\n", err)
+	}
+}
+
+func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = msg.Text
+	if msg.Info.FromMe {
+		message.Source = h.con.Info.Wid
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = h.con.Info.Wid
+	}
+
+	h.messages = append(h.messages, message)
 }
