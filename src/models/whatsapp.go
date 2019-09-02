@@ -270,16 +270,17 @@ func (h *messageHandler) HandleError(err error) {
 }
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
+	currentUserID := CleanPhoneNumber(h.con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = msg.Text
 	if msg.Info.FromMe {
-		message.Source = h.con.Info.Wid
+		message.Source = currentUserID
 		message.Recipient = msg.Info.RemoteJid
 	} else {
 		message.Source = msg.Info.RemoteJid
-		message.Recipient = h.con.Info.Wid
+		message.Recipient = currentUserID
 	}
 
 	h.messages = append(h.messages, message)
