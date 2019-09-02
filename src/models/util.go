@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-chi/jwtauth"
@@ -60,8 +61,9 @@ func GetUser(r *http.Request) (User, error) {
 // CleanPhoneNumber removes all non-numeric characters from a string
 func CleanPhoneNumber(number string) string {
 	var out string
+	spacesRemoved := strings.Replace(number, " ", "", -1)
 	re := regexp.MustCompile("\\d*")
-	matches := re.FindAllString(number, -1)
+	matches := re.FindAllString(spacesRemoved, -1)
 	if len(matches) > 0 {
 		out = matches[0]
 	}

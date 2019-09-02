@@ -77,24 +77,25 @@ func readSession(botID string) (wa.Session, error) {
 	return session, nil
 }
 
-func SendMessage(botID string, recipient string, message string) error {
+func SendMessage(botID string, recipient string, message string) (string, error) {
+	var messageID string
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
-		return err
+		return messageID, err
 	}
 
 	session, err := readSession(botID)
 	if err != nil {
-		return err
+		return messageID, err
 	}
 
 	session, err = con.RestoreWithSession(session)
 	if err != nil {
-		return err
+		return messageID, err
 	}
 
 	if err := writeSession(botID, session); err != nil {
-		return err
+		return messageID, err
 	}
 
 	<-time.After(3 * time.Second)
@@ -108,16 +109,16 @@ func SendMessage(botID string, recipient string, message string) error {
 		Text: message,
 	}
 
-	_, err = con.Send(msg)
+	messageID, err = con.Send(msg)
 	if err != nil {
-		return err
+		return messageID, err
 	}
 
 	if err := writeSession(botID, session); err != nil {
-		return err
+		return messageID, err
 	}
 
-	return nil
+	return messageID, nil
 }
 
 //

@@ -203,6 +203,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 
 type sendFormData struct {
 	PageTitle    string
+	MessageId    string
 	ErrorMessage string
 	Bot          models.Bot
 }
@@ -245,20 +246,29 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	recipient := r.Form.Get("recipient")
 	message := r.Form.Get("message")
 
-	if err = models.SendMessage(bot.ID, recipient, message); err != nil {
+	messageID, err := models.SendMessage(bot.ID, recipient, message)
+	if err != nil {
 		messageSendErrors.Inc()
 		data.ErrorMessage = err.Error()
 		renderSendForm(w, data)
 		return
 	}
 
+	data.MessageId = messageID
+
 	messagesSent.Inc()
 
 	renderSendForm(w, data)
 }
 
+type sentMessage struct {
+	Source    string `json:"source"`
+	Recipient string `json:"recipient"`
+	MessageId string `json:"messageId"`
+}
+
 type sendResponse struct {
-	Result string `json:"result"`
+	Result *sentMessage `json:"result"`
 }
 
 // SendAPIHandler renders route "/v1/bot/{token}/send"
@@ -290,7 +300,8 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = models.SendMessage(bot.ID, recipient, message); err != nil {
+	messageID, err := models.SendMessage(bot.ID, recipient, message)
+	if err != nil {
 		messageSendErrors.Inc()
 		respondServerError(w, err)
 		return
@@ -299,7 +310,11 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	messagesSent.Inc()
 
 	res := &sendResponse{
-		Result: "ok",
+		Result: &sentMessage{
+			Source:    models.CleanPhoneNumber(bot.Number) + "@s.whatsapp.net",
+			Recipient: recipient,
+			MessageId: messageID,
+		},
 	}
 
 	respondSuccess(w, res)
