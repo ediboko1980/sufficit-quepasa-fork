@@ -4,6 +4,7 @@ type Message struct {
 	ID        string `json:"id"`
 	Source    string `json:"source"`
 	Recipient string `json:"recipient"`
+	Name      string `json:"name"`
 	Timestamp uint64 `json:"timestamp"`
 	Body      string `json:"body"`
 }

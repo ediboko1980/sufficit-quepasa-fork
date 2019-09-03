@@ -276,6 +276,10 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = msg.Text
+	contact, ok := h.con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
 	if msg.Info.FromMe {
 		message.Source = currentUserID
 		message.Recipient = msg.Info.RemoteJid
