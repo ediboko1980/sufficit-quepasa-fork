@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -276,7 +277,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		respondBadRequest(w, err)
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
 	}
 
@@ -373,7 +374,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		respondBadRequest(w, err)
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
 	}
 
@@ -406,7 +407,7 @@ func InfoAPIHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		respondBadRequest(w, err)
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
 	}
 
