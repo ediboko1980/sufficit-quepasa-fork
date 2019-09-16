@@ -15,13 +15,14 @@ import (
 )
 
 type WhatsAppServer struct {
-	handlers map[string]*messageHandler
+	connections map[string]*wa.Conn
+	handlers    map[string]*messageHandler
 }
 
 var server *WhatsAppServer
 
 type messageHandler struct {
-	con         *wa.Conn
+	botID       string
 	userIDs     map[string]bool
 	messages    map[string]Message
 	synchronous bool
@@ -33,11 +34,25 @@ type messageHandler struct {
 func StartServer() error {
 	log.Println("Starting WhatsApp server")
 
-	if server == nil {
-		handlers := make(map[string]*messageHandler)
-		server = &WhatsAppServer{handlers}
-	}
+	connections := make(map[string]*wa.Conn)
+	handlers := make(map[string]*messageHandler)
+	server = &WhatsAppServer{connections, handlers}
 
+	return startHandlers()
+}
+
+func restartServer() {
+	log.Println("Restarting")
+
+	for _, con := range server.connections {
+		con.RemoveHandlers()
+		con.Disconnect()
+	}
+	server = nil
+	StartServer()
+}
+
+func startHandlers() error {
 	bots, err := FindAllBots(GetDB())
 	if err != nil {
 		return err
@@ -61,9 +76,11 @@ func startHandler(botID string) error {
 		return err
 	}
 
+	server.connections[botID] = con
+
 	userIDs := make(map[string]bool)
 	messages := make(map[string]Message)
-	startupHandler := &messageHandler{con, userIDs, messages, true}
+	startupHandler := &messageHandler{botID, userIDs, messages, true}
 	con.AddHandler(startupHandler)
 
 	session, err := readSession(botID)
@@ -86,27 +103,27 @@ func startHandler(botID string) error {
 
 	log.Println("Fetching initial messages")
 
-	initialMessages, err := fetchMessages(con, startupHandler.userIDs)
+	initialMessages, err := fetchMessages(con, botID, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
 	log.Println("Setting up long-running message handler")
 
-	asyncMessageHandler := &messageHandler{con, startupHandler.userIDs, initialMessages, false}
+	asyncMessageHandler := &messageHandler{botID, startupHandler.userIDs, initialMessages, false}
 	server.handlers[botID] = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
 
 	return nil
 }
 
-func getHandler(botID string) (*messageHandler, error) {
-	handler, ok := server.handlers[botID]
+func getConnection(botID string) (*wa.Conn, error) {
+	connection, ok := server.connections[botID]
 	if !ok {
-		return nil, fmt.Errorf("Handler not found for botID %s", botID)
+		return nil, fmt.Errorf("Connection not found for botID %s", botID)
 	}
 
-	return handler, nil
+	return connection, nil
 }
 
 func createConnection() (*wa.Conn, error) {
@@ -184,7 +201,7 @@ func SignIn(botID string, out chan<- []byte) error {
 
 func SendMessage(botID string, recipient string, message string) (string, error) {
 	var messageID string
-	handler, err := getHandler(botID)
+	con, err := getConnection(botID)
 	if err != nil {
 		return messageID, err
 	}
@@ -197,10 +214,14 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 		Text: message,
 	}
 
-	messageID, err = handler.con.Send(textMessage)
+	messageID, err = con.Send(textMessage)
 	if err != nil {
 		return messageID, err
 	}
+
+	go func() {
+		restartServer()
+	}()
 
 	return messageID, nil
 }
@@ -218,7 +239,7 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 
 	handler, ok := server.handlers[botID]
 	if !ok {
-		return messages, fmt.Errorf("No handler")
+		return messages, nil
 	}
 
 	for _, msg := range handler.messages {
@@ -232,23 +253,23 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	return messages, nil
 }
 
-func loadMessages(con *wa.Conn, userID string, count int) (map[string]Message, error) {
+func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]Message, error) {
 	userIDs := make(map[string]bool)
 	messages := make(map[string]Message)
-	handler := &messageHandler{con, userIDs, messages, true}
+	handler := &messageHandler{botID, userIDs, messages, true}
 	con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
 	con.RemoveHandlers()
 	return messages, nil
 }
 
-func fetchMessages(con *wa.Conn, userIDs map[string]bool) (map[string]Message, error) {
+func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[string]Message, error) {
 	messages := make(map[string]Message)
 
 	for userID, _ := range userIDs {
 		if string(userID[0]) == "+" {
 			continue
 		}
-		userMessages, err := loadMessages(con, userID, 50)
+		userMessages, err := loadMessages(con, botID, userID, 50)
 		if err != nil {
 			return messages, err
 		}
@@ -264,12 +285,17 @@ func fetchMessages(con *wa.Conn, userIDs map[string]bool) (map[string]Message, e
 // Message handler
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
-	currentUserID := CleanPhoneNumber(h.con.Info.Wid) + "@s.whatsapp.net"
+	con, err := getConnection(h.botID)
+	if err != nil {
+		return
+	}
+
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = msg.Text
-	contact, ok := h.con.Store.Contacts[msg.Info.RemoteJid]
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
 	if ok {
 		message.Name = contact.Name
 	}
@@ -286,7 +312,13 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 }
 
 func (h *messageHandler) HandleError(err error) {
-	log.Printf("Message handler error: %v\n", err)
+	if e, ok := err.(*wa.ErrConnectionFailed); ok {
+		log.Printf("Connection failed, underlying error: %v", e.Err)
+		<-time.After(10 * time.Second)
+		restartServer()
+	} else {
+		log.Printf("Message handler error: %v\n", err)
+	}
 }
 
 func (h *messageHandler) ShouldCallSynchronously() bool {
