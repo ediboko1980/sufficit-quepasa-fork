@@ -18,6 +18,12 @@ type Bot struct {
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
+func FindAllBots(db *sqlx.DB) ([]Bot, error) {
+	bots := []Bot{}
+	err := db.Select(&bots, "SELECT * FROM bots")
+	return bots, err
+}
+
 func FindAllBotsForUser(db *sqlx.DB, userID string) ([]Bot, error) {
 	bots := []Bot{}
 	err := db.Select(&bots, "SELECT * FROM bots WHERE user_id = $1", userID)

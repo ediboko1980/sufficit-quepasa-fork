@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	// "github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/digiresilience/link/quepasa/controllers"
 	"gitlab.com/digiresilience/link/quepasa/models"
 )
@@ -19,7 +19,12 @@ import (
 func main() {
 	err := models.MigrateToLatest()
 	if err != nil {
-		log.Printf("Migration error %s", err.Error())
+		log.Fatalf("Database migration error: %s", err.Error())
+	}
+
+	err = models.StartServer()
+	if err != nil {
+		log.Fatalf("Failed to start WhatsApp server: %s", err.Error())
 	}
 
 	r := chi.NewRouter()
@@ -58,7 +63,7 @@ func main() {
 		r.Get("/setup", controllers.SetupFormHandler)
 		r.Post("/setup", controllers.SetupHandler)
 		r.Get("/logout", controllers.LogoutHandler)
-		r.Handle("/metrics", promhttp.Handler())
+		//	r.Handle("/metrics", promhttp.Handler())
 	})
 
 	// api routes
@@ -73,6 +78,7 @@ func main() {
 	assetsDir := filepath.Join(workDir, "assets")
 	fileServer(r, "/assets", http.Dir(assetsDir))
 
+	log.Println("Starting web server")
 	http.ListenAndServe(":3000", r)
 }
 

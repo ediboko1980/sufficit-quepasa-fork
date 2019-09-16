@@ -72,6 +72,8 @@ func CleanPhoneNumber(number string) string {
 
 // MigrateToLatest updates the database to the latest schema
 func MigrateToLatest() error {
+	log.Println("Migrating database (if necessary)")
+
 	workDir, err := os.Getwd()
 	if err != nil {
 		return err
