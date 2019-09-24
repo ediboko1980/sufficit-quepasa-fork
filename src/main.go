@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
-	// "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/digiresilience/link/quepasa/controllers"
 	"gitlab.com/digiresilience/link/quepasa/models"
 )
@@ -26,6 +27,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to start WhatsApp server: %s", err.Error())
 	}
+
+	go func() {
+		log.Println("Starting metrics service")
+
+		m := chi.NewRouter()
+		m.Handle("/metrics", promhttp.Handler())
+		host := fmt.Sprintf("%s:%s", os.Getenv("METRICS_HOST"), os.Getenv("METRICS_PORT"))
+		log.Println(host)
+		http.ListenAndServe(host, m)
+	}()
 
 	r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
@@ -63,7 +74,6 @@ func main() {
 		r.Get("/setup", controllers.SetupFormHandler)
 		r.Post("/setup", controllers.SetupHandler)
 		r.Get("/logout", controllers.LogoutHandler)
-		//	r.Handle("/metrics", promhttp.Handler())
 	})
 
 	// api routes

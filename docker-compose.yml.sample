@@ -22,3 +22,5 @@ services:
       - PGSSLMODE=enable
       # - SIGNING_SECRET=changeme
       - SIGNING_SECRET_FILE=/secrets/signing_secret
+      - METRICS_HOST=
+      - METRICS_PORT=9392
