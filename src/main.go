@@ -34,7 +34,6 @@ func main() {
 		m := chi.NewRouter()
 		m.Handle("/metrics", promhttp.Handler())
 		host := fmt.Sprintf("%s:%s", os.Getenv("METRICS_HOST"), os.Getenv("METRICS_PORT"))
-		log.Println(host)
 		http.ListenAndServe(host, m)
 	}()
 

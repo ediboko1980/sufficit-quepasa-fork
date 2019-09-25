@@ -1,8 +1,5 @@
 FROM golang:1.12.4-stretch as builder
 LABEL maintainer="Darren Clarke <darren@redaranj.com>"
-RUN mkdir /vendor
-WORKDIR /vendor
-COPY vendor .
 RUN mkdir /build
 WORKDIR /build
 COPY src .
@@ -15,7 +12,7 @@ ARG VCS_REF
 ARG VCS_URL
 ARG VERSION
 
-LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.schema-version="1.1"
 LABEL org.label-schema.name="redaranj/quepasa"
 LABEL org.label-schema.description="Write WhatsApp bots with https"
 LABEL org.label-schema.build-date=$BUILD_DATE
