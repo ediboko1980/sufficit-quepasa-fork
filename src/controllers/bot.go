@@ -192,6 +192,9 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	models.RestartServer()
+
 	err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
 	if err != nil {
 		log.Println("Write message error: ", err)

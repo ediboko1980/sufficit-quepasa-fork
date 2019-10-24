@@ -41,7 +41,7 @@ func StartServer() error {
 	return startHandlers()
 }
 
-func restartServer() {
+func RestartServer() {
 	log.Println("Restarting")
 
 	for _, con := range server.connections {
@@ -220,7 +220,7 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 	}
 
 	go func() {
-		restartServer()
+		RestartServer()
 	}()
 
 	return messageID, nil
@@ -315,7 +315,7 @@ func (h *messageHandler) HandleError(err error) {
 	if e, ok := err.(*wa.ErrConnectionFailed); ok {
 		log.Printf("Connection failed, underlying error: %v", e.Err)
 		<-time.After(10 * time.Second)
-		restartServer()
+		RestartServer()
 	} else {
 		log.Printf("Message handler error: %v\n", err)
 	}
