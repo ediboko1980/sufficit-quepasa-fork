@@ -25,7 +25,7 @@ func main() {
 
 	err = models.StartServer()
 	if err != nil {
-		log.Fatalf("Failed to start WhatsApp server: %s", err.Error())
+		log.Printf("Failed to start WhatsApp server: %s", err.Error())
 	}
 
 	go func() {
@@ -37,6 +37,13 @@ func main() {
 		http.ListenAndServe(host, m)
 	}()
 
+	r := newRouter()
+
+	log.Println("Starting web server")
+	http.ListenAndServe(":3000", r)
+}
+
+func newRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.RequestID)
@@ -45,6 +52,21 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 
+	// web routes
+	addWebRoutes(r)
+
+	// api routes
+	addAPIRoutes(r)
+
+	// static files
+	workDir, _ := os.Getwd()
+	assetsDir := filepath.Join(workDir, "assets")
+	fileServer(r, "/assets", http.Dir(assetsDir))
+
+	return r
+}
+
+func addWebRoutes(r chi.Router) {
 	tokenAuth := jwtauth.New("HS256", []byte(os.Getenv("SIGNING_SECRET")), nil)
 
 	// authenticated web routes
@@ -74,21 +96,14 @@ func main() {
 		r.Post("/setup", controllers.SetupHandler)
 		r.Get("/logout", controllers.LogoutHandler)
 	})
+}
 
-	// api routes
+func addAPIRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Get("/v1/bot/{token}", controllers.InfoAPIHandler)
 		r.Post("/v1/bot/{token}/send", controllers.SendAPIHandler)
 		r.Get("/v1/bot/{token}/receive", controllers.ReceiveAPIHandler)
 	})
-
-	// static files
-	workDir, _ := os.Getwd()
-	assetsDir := filepath.Join(workDir, "assets")
-	fileServer(r, "/assets", http.Dir(assetsDir))
-
-	log.Println("Starting web server")
-	http.ListenAndServe(":3000", r)
 }
 
 func fileServer(r chi.Router, path string, root http.FileSystem) {
