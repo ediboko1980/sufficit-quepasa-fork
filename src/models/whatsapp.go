@@ -8,6 +8,7 @@ import (
 	"log"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
@@ -314,6 +315,10 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 func (h *messageHandler) HandleError(err error) {
 	if e, ok := err.(*wa.ErrConnectionFailed); ok {
 		log.Printf("Connection failed, underlying error: %v", e.Err)
+		<-time.After(10 * time.Second)
+		RestartServer()
+	} else if strings.Contains(err.Error(), "tag 174") {
+		log.Printf("Binary decode error, underlying error: %v", err)
 		<-time.After(10 * time.Second)
 		RestartServer()
 	} else {

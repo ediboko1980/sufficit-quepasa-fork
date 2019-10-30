@@ -2,7 +2,7 @@ module gitlab.com/digiresilience/link/quepasa/models
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/Rhymen/go-whatsapp v0.0.3-0.20191003184814-fc3f792c814c // indirect
+	github.com/Rhymen/go-whatsapp v0.0.3-0.20191003184814-fc3f792c814c
 	github.com/containerd/containerd v1.2.9 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dhui/dktest v0.3.1 // indirect
