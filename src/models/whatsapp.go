@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -133,7 +134,8 @@ func createConnection() (*wa.Conn, error) {
 		return con, err
 	}
 
-	con.SetClientName("QuePasa for Link", "QuePasa")
+	con.SetClientName("QuePasa for Link", "QuePasa", "0.4")
+	con.SetClientVersion(0, 4, 2088)
 
 	return con, err
 }

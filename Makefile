@@ -1,5 +1,5 @@
 # Image and binary can be overidden with env vars.
-DOCKER_IMAGE ?= redaranj/quepasa
+DOCKER_IMAGE ?= digiresilience/quepasa
 
 # Get the latest commit.
 GIT_COMMIT = $(strip $(shell git rev-parse --short HEAD))
@@ -8,7 +8,7 @@ GIT_COMMIT = $(strip $(shell git rev-parse --short HEAD))
 # PACKAGE_VERSION=$(shell sed -nE 's/^\s*"version": "(.*?)",$$/\1/p' package.json)
 
 # temp
-PACKAGE_VERSION=0.1
+PACKAGE_VERSION=0.4
 
 # Find out if the working directory is clean
 GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
