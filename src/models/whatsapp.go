@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
