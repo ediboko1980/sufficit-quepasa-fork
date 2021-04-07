@@ -288,13 +288,30 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 // Message handler
 
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
-	b, err := json.Marshal(msg)
+	con, err := getConnection(h.botID)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	log.Printf("%#v\n", string(b))
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Imagem recebida: " + msg.Type
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
