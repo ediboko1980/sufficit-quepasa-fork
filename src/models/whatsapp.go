@@ -288,63 +288,23 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 // Message handler
 
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
-	con, err := getConnection(h.botID)
-	if err != nil {
-		return
-	}
-
 	b, err := json.Marshal(msg)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
-	message := Message{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
-	message.Body = "Imagem enviada :: " + string(b)
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
-
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	log.Printf("%#v\n", string(b))
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
-	con, err := getConnection(h.botID)
+	b, err := json.Marshal(msg)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
-	message := Message{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
-	message.Body = "Mensagem de audio enviada."
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
-
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	log.Printf("%#v\n", string(b))
 }
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
@@ -352,6 +312,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	if err != nil {
 		return
 	}
+
 	log.Printf("%#v\n", msg.Info.RemoteJid)
 	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
