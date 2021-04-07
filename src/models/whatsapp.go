@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
@@ -292,11 +293,17 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 		return
 	}
 
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
-	message.Body = "Imagem enviada."
+	message.Body = "Imagem enviada :: " + string(b)
 	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
 	if ok {
 		message.Name = contact.Name
@@ -345,7 +352,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	if err != nil {
 		return
 	}
-
+	log.Printf("%#v\n", msg.Info.RemoteJid)
 	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
@@ -375,6 +382,8 @@ func (h *messageHandler) HandleError(err error) {
 	} else if strings.Contains(err.Error(), "tag 174") {
 		log.Printf("Binary decode error, underlying error: %v", err)
 		<-time.After(10 * time.Second)
+
+		// Dont needed to restart
 		//RestartServer()
 	} else {
 		log.Printf("Message handler error: %v\n", err)
