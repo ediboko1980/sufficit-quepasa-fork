@@ -121,7 +121,7 @@ func startHandler(botID string) error {
 func getConnection(botID string) (*wa.Conn, error) {
 	connection, ok := server.connections[botID]
 	if !ok {
-		return nil, fmt.Errorf("Connection not found for botID %s", botID)
+		return nil, fmt.Errorf("connection not found for botID %s", botID)
 	}
 
 	return connection, nil
@@ -267,7 +267,7 @@ func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[str
 func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[string]Message, error) {
 	messages := make(map[string]Message)
 
-	for userID, _ := range userIDs {
+	for userID := range userIDs {
 		if string(userID[0]) == "+" {
 			continue
 		}
@@ -321,7 +321,7 @@ func (h *messageHandler) HandleError(err error) {
 	} else if strings.Contains(err.Error(), "tag 174") {
 		log.Printf("Binary decode error, underlying error: %v", err)
 		<-time.After(10 * time.Second)
-		RestartServer()
+		//RestartServer()
 	} else {
 		log.Printf("Message handler error: %v\n", err)
 	}

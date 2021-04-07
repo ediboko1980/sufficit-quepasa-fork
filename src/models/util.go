@@ -60,9 +60,10 @@ func GetUser(r *http.Request) (User, error) {
 
 // CleanPhoneNumber removes all non-numeric characters from a string
 func CleanPhoneNumber(number string) string {
+	log.Printf("cleaning phone number: %s", number)
 	var out string
 	spacesRemoved := strings.Replace(number, " ", "", -1)
-	re := regexp.MustCompile("\\d*")
+	re := regexp.MustCompile(`\d*`)
 	matches := re.FindAllString(spacesRemoved, -1)
 	if len(matches) > 0 {
 		out = matches[0]
