@@ -345,13 +345,30 @@ func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
 }
 
 func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
-	b, err := json.Marshal(msg)
+	con, err := getConnection(h.botID)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	log.Printf("DOC :: %#v\n", string(b))
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Documento recebido: " + msg.Type + " :: " + msg.FileName
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
