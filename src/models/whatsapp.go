@@ -314,7 +314,7 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	h.messages[message.ID] = message
 }
 
-func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
+func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		fmt.Println(err)
@@ -322,6 +322,43 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 	}
 
 	log.Printf("%#v\n", string(b))
+}
+
+func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("%#v\n", string(b))
+}
+
+func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
+	con, err := getConnection(h.botID)
+	if err != nil {
+		return
+	}
+
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Audio recebido: " + msg.Type
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
