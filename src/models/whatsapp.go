@@ -314,6 +314,36 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	h.messages[message.ID] = message
 }
 
+func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("LOC :: %#v\n", string(b))
+}
+
+func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("LVL :: %#v\n", string(b))
+}
+
+func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("INFO :: %#v\n", string(b))
+}
+
 func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 	b, err := json.Marshal(msg)
 	if err != nil {
@@ -321,7 +351,7 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 		return
 	}
 
-	log.Printf("%#v\n", string(b))
+	log.Printf("DOC :: %#v\n", string(b))
 }
 
 func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
@@ -331,7 +361,7 @@ func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
 		return
 	}
 
-	log.Printf("%#v\n", string(b))
+	log.Printf("CONT :: %#v\n", string(b))
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
