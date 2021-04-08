@@ -414,7 +414,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		return
 	}
 
-	log.Printf("%#v\n", msg.Info.RemoteJid)
+	log.Printf("%#v\n", con.Info.Wid)
 	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
@@ -434,14 +434,6 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 
 	h.userIDs[msg.Info.RemoteJid] = true
 	h.messages[message.ID] = message
-
-	b, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	log.Printf("TXT :: %#v\n", string(b))
 }
 
 func (h *messageHandler) HandleError(err error) {
