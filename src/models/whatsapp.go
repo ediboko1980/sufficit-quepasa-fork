@@ -434,6 +434,14 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 
 	h.userIDs[msg.Info.RemoteJid] = true
 	h.messages[message.ID] = message
+
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("TXT :: %#v\n", string(b))
 }
 
 func (h *messageHandler) HandleError(err error) {
