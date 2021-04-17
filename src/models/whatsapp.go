@@ -414,7 +414,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		return
 	}
 
-	log.Printf("%#v\n", con.Info.Wid)
+	//log.Printf("%#v\n", con.Info.Wid)
 	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
