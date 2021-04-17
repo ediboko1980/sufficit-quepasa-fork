@@ -315,23 +315,57 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 }
 
 func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
-	b, err := json.Marshal(msg)
+	con, err := getConnection(h.botID)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	log.Printf("LOC :: %#v\n", string(b))
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Localização recebida ... "
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
-	b, err := json.Marshal(msg)
+	con, err := getConnection(h.botID)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	log.Printf("LVL :: %#v\n", string(b))
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Localização em tempo real recebida ... "
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
@@ -372,13 +406,30 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 }
 
 func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
-	b, err := json.Marshal(msg)
+	con, err := getConnection(h.botID)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	log.Printf("CONT :: %#v\n", string(b))
+	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	message := Message{}
+	message.ID = msg.Info.Id
+	message.Timestamp = msg.Info.Timestamp
+	message.Body = "Contato VCARD recebido ... "
+	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
+	if ok {
+		message.Name = contact.Name
+	}
+	if msg.Info.FromMe {
+		message.Source = currentUserID
+		message.Recipient = msg.Info.RemoteJid
+	} else {
+		message.Source = msg.Info.RemoteJid
+		message.Recipient = currentUserID
+	}
+
+	h.userIDs[msg.Info.RemoteJid] = true
+	h.messages[message.ID] = message
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
