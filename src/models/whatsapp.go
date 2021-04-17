@@ -287,6 +287,10 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 
 // Message handler
 
+func (h *messageHandler) HandleJsonMessage(message string) {
+	fmt.Println("JsonMessage: " + message)
+}
+
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	con, err := getConnection(h.botID)
 	if err != nil {
@@ -488,6 +492,8 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 }
 
 func (h *messageHandler) HandleError(err error) {
+	log.Printf("SUFF ERROR:: %v", err.Error())
+
 	if e, ok := err.(*wa.ErrConnectionFailed); ok {
 		log.Printf("Connection failed, underlying error: %v", e.Err)
 		<-time.After(10 * time.Second)
