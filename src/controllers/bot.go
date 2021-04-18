@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"gitlab.com/digiresilience/link/quepasa/models"
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 //

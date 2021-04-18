@@ -79,20 +79,19 @@ func MigrateToLatest() error {
 		return err
 	}
 
-	migrationsDir := filepath.Join(workDir, "migrations")
-	fullPath := fmt.Sprintf("file://%s", migrationsDir)
+	leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
+	migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
+	fullPath := fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+
 	host := os.Getenv("PGHOST")
 	database := os.Getenv("PGDATABASE")
 	port := os.Getenv("PGPORT")
 	user := os.Getenv("PGUSER")
 	password := os.Getenv("PGPASSWORD")
 	ssl := os.Getenv("PGSSLMODE")
-	connection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		user, password, host, port, database, ssl)
+	connection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, database, ssl)
 
-	m, err := migrate.New(
-		fullPath,
-		connection)
+	m, err := migrate.New(fullPath, connection)
 	if err != nil {
 		return err
 	}

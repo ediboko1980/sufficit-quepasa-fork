@@ -1,4 +1,4 @@
-module gitlab.com/digiresilience/link/quepasa/controllers
+module github.com/sufficit/sufficit-quepasa-fork/controllers
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -11,11 +11,11 @@ require (
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/prometheus/client_golang v1.6.0
 	github.com/trustelem/zxcvbn v1.0.1
-	gitlab.com/digiresilience/link/quepasa/models v0.0.0
+	github.com/sufficit/sufficit-quepasa-fork/models v0.0.0
 )
 
-replace gitlab.com/digiresilience/link/quepasa/controllers => ./
+replace github.com/sufficit/sufficit-quepasa-fork/controllers => ./
 
-replace gitlab.com/digiresilience/link/quepasa/models => ../models
+replace github.com/sufficit/sufficit-quepasa-fork/models => ../models
 
 go 1.14

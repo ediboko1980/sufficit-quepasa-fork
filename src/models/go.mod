@@ -1,4 +1,4 @@
-module gitlab.com/digiresilience/link/quepasa/models
+module github.com/sufficit/sufficit-quepasa-fork/models
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
@@ -25,6 +25,6 @@ require (
 	gotest.tools v2.2.0+incompatible // indirect
 )
 
-replace gitlab.com/digiresilience/link/quepasa/models => ./
+replace github.com/sufficit/sufficit-quepasa-fork/models => ./
 
 go 1.14

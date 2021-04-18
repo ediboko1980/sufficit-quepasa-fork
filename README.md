@@ -138,7 +138,7 @@ GET /bot/<TOKEN>/receive?timestamp=1541265073783
 
 ## License
 
-[![License GNU AGPL v3.0](https://img.shields.io/badge/License-AGPL%203.0-lightgrey.svg)](https://gitlab.com/digiresilience/link/quepasa/blob/master/LICENSE.md)
+[![License GNU AGPL v3.0](https://img.shields.io/badge/License-AGPL%203.0-lightgrey.svg)](https://github.com/sufficit/sufficit-quepasa-fork/blob/master/LICENSE.md)
 
 QuePasa is a free software project licensed under the GNU Affero General Public License v3.0 (GNU AGPLv3) by [The Center for Digital Resilience](https://digiresilience.org).
 

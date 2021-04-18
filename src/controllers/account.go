@@ -10,7 +10,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
 	"github.com/nbutton23/zxcvbn-go"
-	"gitlab.com/digiresilience/link/quepasa/models"
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 //

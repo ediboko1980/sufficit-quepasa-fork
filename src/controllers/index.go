@@ -1,9 +1,10 @@
 package controllers
 
 import (
-	"gitlab.com/digiresilience/link/quepasa/models"
 	"html/template"
 	"net/http"
+
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 type indexData struct {

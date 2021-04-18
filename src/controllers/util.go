@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"regexp"
 )
 
@@ -21,12 +20,15 @@ func redirectToLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
+// Google chrome bloqueou wss, portanto retornaremos sempre ws apatir de agora
 func webSocketProtocol() string {
-	protocol := "wss"
-	if os.Getenv("APP_ENV") == "development" {
-		protocol = "ws"
-	}
-	return protocol
+	//protocol := "wss"
+	//if os.Getenv("APP_ENV") == "development" {
+	//	protocol = "ws"
+	//}
+
+	// return protocol
+	return "ws"
 }
 
 func validateEmail(s string) bool {

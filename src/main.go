@@ -13,9 +13,26 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.com/digiresilience/link/quepasa/controllers"
-	"gitlab.com/digiresilience/link/quepasa/models"
+	"github.com/sufficit/sufficit-quepasa-fork/controllers"
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
+
+func startWhatsAppService() <-chan int {
+	r := make(chan int)
+
+	go func() {
+		defer close(r)
+
+		// Simulate a workload.
+		err := models.StartServer()
+		if err != nil {
+			log.Printf("Failed to start WhatsApp server: %s", err.Error())
+		}
+		r <- 0
+	}()
+
+	return r
+}
 
 func main() {
 	err := models.MigrateToLatest()
@@ -23,10 +40,7 @@ func main() {
 		log.Fatalf("Database migration error: %s", err.Error())
 	}
 
-	err = models.StartServer()
-	if err != nil {
-		log.Printf("Failed to start WhatsApp server: %s", err.Error())
-	}
+	startWhatsAppService()
 
 	go func() {
 		log.Println("Starting metrics service")
@@ -113,7 +127,7 @@ func fileServer(r chi.Router, path string, root http.FileSystem) {
 
 	fs := http.StripPrefix(path, http.FileServer(root))
 	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
 		path += "/"
 	}
 	path += "*"

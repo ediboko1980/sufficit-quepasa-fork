@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
@@ -51,7 +52,10 @@ func RestartServer() {
 		con.Disconnect()
 	}
 	server = nil
-	StartServer()
+	err := StartServer()
+	if err != nil {
+		log.Printf("SUFF ERROR F :: Starting service after restart ... %s:", err)
+	}
 }
 
 func startHandlers() error {
@@ -61,7 +65,7 @@ func startHandlers() error {
 	}
 
 	for _, bot := range bots {
-		log.Printf("Adding message handlers for %s", bot.Number)
+		log.Printf("(%s) :: Adding message handlers for %s", bot.ID, bot.Number)
 
 		err = startHandler(bot.ID)
 		if err != nil {
@@ -103,15 +107,13 @@ func startHandler(botID string) error {
 
 	con.RemoveHandlers()
 
-	log.Println("Fetching initial messages")
-
+	log.Printf("(%s) :: Fetching initial messages", botID)
 	initialMessages, err := fetchMessages(con, botID, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
-	log.Println("Setting up long-running message handler")
-
+	log.Printf("(%s) :: Setting up long-running message handler", botID)
 	asyncMessageHandler := &messageHandler{botID, startupHandler.userIDs, initialMessages, false}
 	server.handlers[botID] = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
@@ -188,7 +190,7 @@ func SignIn(botID string, out chan<- []byte) error {
 		var png []byte
 		png, err := qrcode.Encode(<-qr, qrcode.Medium, 256)
 		if err != nil {
-			log.Println(err)
+			log.Printf("SUFF ERROR C :: %#v\n", err.Error())
 		}
 		encodedPNG := base64.StdEncoding.EncodeToString(png)
 		out <- []byte(encodedPNG)
@@ -278,7 +280,12 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 		}
 
 		for messageID, message := range userMessages {
+			var mutex = &sync.Mutex{}
+			mutex.Lock()
+
 			messages[messageID] = message
+
+			mutex.Unlock()
 		}
 	}
 
@@ -314,8 +321,7 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
@@ -341,8 +347,7 @@ func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
@@ -368,8 +373,7 @@ func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
@@ -405,8 +409,7 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
@@ -432,8 +435,7 @@ func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
@@ -459,8 +461,7 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
@@ -475,10 +476,13 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = msg.Text
+
+	//if con.Info.Connected {
 	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
 	if ok {
 		message.Name = contact.Name
 	}
+
 	if msg.Info.FromMe {
 		message.Source = currentUserID
 		message.Recipient = msg.Info.RemoteJid
@@ -487,25 +491,31 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		message.Recipient = currentUserID
 	}
 
-	h.userIDs[msg.Info.RemoteJid] = true
-	h.messages[message.ID] = message
+	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
-func (h *messageHandler) HandleError(err error) {
-	log.Printf("SUFF ERROR:: %v", err.Error())
+func AppenMsgToCache(h *messageHandler, msg Message, RemoteJid string) error {
+	var mutex = &sync.Mutex{}
+	mutex.Lock()
 
-	if e, ok := err.(*wa.ErrConnectionFailed); ok {
-		log.Printf("Connection failed, underlying error: %v", e.Err)
+	h.userIDs[RemoteJid] = true
+	h.messages[msg.ID] = msg
+
+	mutex.Unlock()
+	return nil
+}
+
+func (h *messageHandler) HandleError(publicError error) {
+	if e, ok := publicError.(*wa.ErrConnectionFailed); ok {
+		log.Printf("SUFF ERROR B :: Connection failed, underlying error: %v", e.Err)
 		<-time.After(10 * time.Second)
 		RestartServer()
-	} else if strings.Contains(err.Error(), "tag 174") {
-		log.Printf("Binary decode error, underlying error: %v", err)
+	} else if strings.Contains(publicError.Error(), "tag 174") {
+		log.Printf("SUFF ERROR D :: Binary decode error, underlying error: %v", publicError)
 		<-time.After(10 * time.Second)
-
-		// Dont needed to restart
 		//RestartServer()
 	} else {
-		log.Printf("Message handler error: %v\n", err)
+		log.Printf("SUFF ERROR E :: Message handler error: %v\n", publicError)
 	}
 }
 
