@@ -313,9 +313,11 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	messagesSent.Inc()
 
+	phoneNumber, _ := models.CleanPhoneNumber(bot.Number)
+
 	res := &sendResponse{
 		Result: &sentMessage{
-			Source:    models.CleanPhoneNumber(bot.Number) + "@s.whatsapp.net",
+			Source:    phoneNumber + "@s.whatsapp.net",
 			Recipient: recipient,
 			MessageId: messageID,
 		},

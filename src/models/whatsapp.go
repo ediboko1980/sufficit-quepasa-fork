@@ -211,7 +211,7 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 		return messageID, err
 	}
 
-	formattedRecipient := CleanPhoneNumber(recipient)
+	formattedRecipient, _ := CleanPhoneNumber(recipient)
 	textMessage := wa.TextMessage{
 		Info: wa.MessageInfo{
 			RemoteJid: formattedRecipient + "@s.whatsapp.net",
@@ -262,7 +262,9 @@ func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[str
 	userIDs := make(map[string]bool)
 	messages := make(map[string]Message)
 	handler := &messageHandler{botID, userIDs, messages, true}
-	con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
+	if handler != nil {
+		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
+	}
 	con.RemoveHandlers()
 	return messages, nil
 }
@@ -304,7 +306,8 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -330,7 +333,8 @@ func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -356,7 +360,9 @@ func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
+
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -392,7 +398,9 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
+
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -418,7 +426,9 @@ func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
+
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -444,7 +454,9 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 		return
 	}
 
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
+
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -470,8 +482,9 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		return
 	}
 
-	//log.Printf("%#v\n", con.Info.Wid)
-	currentUserID := CleanPhoneNumber(con.Info.Wid) + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
+
 	message := Message{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
@@ -498,8 +511,10 @@ func AppenMsgToCache(h *messageHandler, msg Message, RemoteJid string) error {
 	var mutex = &sync.Mutex{}
 	mutex.Lock()
 
-	h.userIDs[RemoteJid] = true
-	h.messages[msg.ID] = msg
+	if h != nil {
+		h.userIDs[RemoteJid] = true
+		h.messages[msg.ID] = msg
+	}
 
 	mutex.Unlock()
 	return nil

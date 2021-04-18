@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -85,5 +86,9 @@ func (bot *Bot) Delete(db *sqlx.DB) error {
 }
 
 func (bot *Bot) FormattedNumber() string {
-	return CleanPhoneNumber(bot.Number)
+	phoneNumber, err := CleanPhoneNumber(bot.Number)
+	if err != nil {
+		log.Printf("SUFF ERROR G :: error on regex: %v\n", err)
+	}
+	return phoneNumber
 }

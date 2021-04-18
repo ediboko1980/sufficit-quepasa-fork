@@ -59,15 +59,15 @@ func GetUser(r *http.Request) (User, error) {
 }
 
 // CleanPhoneNumber removes all non-numeric characters from a string
-func CleanPhoneNumber(number string) string {
+func CleanPhoneNumber(number string) (string, error) {
 	var out string
 	spacesRemoved := strings.Replace(number, " ", "", -1)
-	re := regexp.MustCompile(`\d*`)
+	re, err := regexp.Compile(`\d*`)
 	matches := re.FindAllString(spacesRemoved, -1)
 	if len(matches) > 0 {
 		out = matches[0]
 	}
-	return out
+	return out, err
 }
 
 // MigrateToLatest updates the database to the latest schema
