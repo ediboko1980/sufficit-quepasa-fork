@@ -13,7 +13,7 @@ ARG VCS_URL
 ARG VERSION
 
 LABEL org.label-schema.schema-version="1.1"
-LABEL org.label-schema.name="digiresilience/quepasa"
+LABEL org.label-schema.name="sufficit/quepasa"
 LABEL org.label-schema.description="Write WhatsApp bots with https"
 LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.vcs-url=$VCS_URL
