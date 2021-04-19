@@ -14,3 +14,4 @@ client.rest
 secrets/
 tmp/
 docker-compose.yml
+__debug_bin

@@ -477,34 +477,15 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 }
 
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: error on pre processing received message: %v", err)
 		return
 	}
 
-	_, exists := h.messages[msg.Info.Id]
-
-	if exists {
-		return
-	}
-
-	message := CreateQPMessage(msg)
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = msg.Text
-
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
