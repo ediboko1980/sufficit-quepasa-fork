@@ -79,9 +79,14 @@ func MigrateToLatest() error {
 		return err
 	}
 
-	leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
-	migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
-	fullPath := fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+	// windows ===================
+	//leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
+	//migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
+	//fullPath := fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+
+	// linux ===================
+	migrationsDir := filepath.Join(workDir, "migrations")
+	fullPath := fmt.Sprintf("file://%s", migrationsDir)
 
 	host := os.Getenv("PGHOST")
 	database := os.Getenv("PGDATABASE")
