@@ -22,7 +22,7 @@ LABEL org.label-schema.version=$VERSION
 
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /build/sufficit-quepasa-fork ./sufficit-quepasa-fork
+COPY --from=builder /build/sufficit-quepasa-fork ./quepasa
 COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
 COPY --from=builder /build/migrations ./migrations
