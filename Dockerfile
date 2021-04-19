@@ -1,12 +1,12 @@
 FROM golang:1.14.2-stretch as builder
-LABEL maintainer="Darren Clarke <darren@redaranj.com>"
+LABEL maintainer="Hugo Castro de Deco <hugodeco@sufficit.com.br>"
 RUN mkdir /build
 WORKDIR /build
 COPY src .
 RUN go build
 
 FROM golang:1.14.2-stretch
-LABEL maintainer="Darren Clarke <darren@redaranj.com>"
+LABEL maintainer="Hugo Castro de Deco <hugodeco@sufficit.com.br>"
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VCS_URL
