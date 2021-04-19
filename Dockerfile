@@ -1,4 +1,4 @@
-FROM golang:1.14.2-stretch as builder
+FROM golang:1.14.2-stretch AS builder
 LABEL maintainer="Hugo Castro de Deco <hugodeco@sufficit.com.br>"
 RUN mkdir /build
 WORKDIR /build
@@ -22,7 +22,7 @@ LABEL org.label-schema.version=$VERSION
 
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /build/quepasa ./quepasa
+COPY --from=builder /build/sufficit-quepasa-fork ./sufficit-quepasa-fork
 COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
 COPY --from=builder /build/migrations ./migrations

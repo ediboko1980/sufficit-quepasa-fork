@@ -482,6 +482,12 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		return
 	}
 
+	_, exists := h.messages[msg.Info.Id]
+
+	if exists {
+		return
+	}
+
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
 
