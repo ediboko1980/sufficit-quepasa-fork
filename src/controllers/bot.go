@@ -331,15 +331,15 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 //
 
 type receiveResponse struct {
-	Messages []models.Message `json:"messages"`
-	Bot      models.Bot       `json:"bot"`
+	Messages []models.QPMessage `json:"messages"`
+	Bot      models.Bot         `json:"bot"`
 }
 
 type receiveFormData struct {
 	PageTitle    string
 	ErrorMessage string
 	Number       string
-	Messages     []models.Message
+	Messages     []models.QPMessage
 }
 
 // ReceiveFormHandler renders route GET "/bot/{botID}/receive"
