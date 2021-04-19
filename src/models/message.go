@@ -1,15 +1,18 @@
 package models
 
-type Message struct {
+// Mensagem no formato QuePasa
+// Utilizada na API do QuePasa para troca com outros sistemas
+type QPMessage struct {
 	ID        string `json:"id"`
 	Source    string `json:"source"`
+	ReplyTo   string `json:"replyto"`
 	Recipient string `json:"recipient"`
 	Name      string `json:"name"`
 	Timestamp uint64 `json:"timestamp"`
 	Body      string `json:"body"`
 }
 
-type ByTimestamp []Message
+type ByTimestamp []QPMessage
 
 func (m ByTimestamp) Len() int           { return len(m) }
 func (m ByTimestamp) Less(i, j int) bool { return m[i].Timestamp > m[j].Timestamp }

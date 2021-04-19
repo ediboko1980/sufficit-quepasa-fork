@@ -27,7 +27,7 @@ var server *WhatsAppServer
 type messageHandler struct {
 	botID       string
 	userIDs     map[string]bool
-	messages    map[string]Message
+	messages    map[string]QPMessage
 	synchronous bool
 }
 
@@ -85,7 +85,7 @@ func startHandler(botID string) error {
 	server.connections[botID] = con
 
 	userIDs := make(map[string]bool)
-	messages := make(map[string]Message)
+	messages := make(map[string]QPMessage)
 	startupHandler := &messageHandler{botID, userIDs, messages, true}
 	con.AddHandler(startupHandler)
 
@@ -235,8 +235,8 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 // ReceiveMessages
 //
 
-func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
-	var messages []Message
+func ReceiveMessages(botID string, timestamp string) ([]QPMessage, error) {
+	var messages []QPMessage
 	searchTimestamp, err := strconv.ParseUint(timestamp, 10, 64)
 	if err != nil {
 		searchTimestamp = 1000000
@@ -258,9 +258,9 @@ func ReceiveMessages(botID string, timestamp string) ([]Message, error) {
 	return messages, nil
 }
 
-func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]Message, error) {
+func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]QPMessage, error) {
 	userIDs := make(map[string]bool)
-	messages := make(map[string]Message)
+	messages := make(map[string]QPMessage)
 	handler := &messageHandler{botID, userIDs, messages, true}
 	if handler != nil {
 		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
@@ -269,8 +269,8 @@ func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[str
 	return messages, nil
 }
 
-func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[string]Message, error) {
-	messages := make(map[string]Message)
+func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[string]QPMessage, error) {
+	messages := make(map[string]QPMessage)
 
 	for userID := range userIDs {
 		if string(userID[0]) == "+" {
@@ -308,7 +308,7 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Imagem recebida: " + msg.Type
@@ -335,7 +335,7 @@ func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Localização recebida ... "
@@ -363,7 +363,7 @@ func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
 
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Localização em tempo real recebida ... "
@@ -401,7 +401,7 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
 
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Documento recebido: " + msg.Type + " :: " + msg.FileName
@@ -429,7 +429,7 @@ func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
 
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Contato VCARD recebido ... "
@@ -457,7 +457,7 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	currentUserID = currentUserID + "@s.whatsapp.net"
 
-	message := Message{}
+	message := QPMessage{}
 	message.ID = msg.Info.Id
 	message.Timestamp = msg.Info.Timestamp
 	message.Body = "Audio recebido: " + msg.Type
@@ -488,20 +488,16 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-
-	message := Message{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg)
 	message.Body = msg.Text
 
-	//if con.Info.Connected {
 	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
 	if ok {
 		message.Name = contact.Name
 	}
 
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = currentUserID + "@s.whatsapp.net"
 	if msg.Info.FromMe {
 		message.Source = currentUserID
 		message.Recipient = msg.Info.RemoteJid
@@ -513,7 +509,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
-func AppenMsgToCache(h *messageHandler, msg Message, RemoteJid string) error {
+func AppenMsgToCache(h *messageHandler, msg QPMessage, RemoteJid string) error {
 	var mutex = &sync.Mutex{}
 	mutex.Lock()
 
