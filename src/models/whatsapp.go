@@ -216,10 +216,10 @@ func SendMessage(botID string, recipient string, message string) (messageID stri
 	if strings.ContainsAny(recipient, "@") {
 		suffix := strings.Split(recipient, "@")
 		if !allowedSuffix[suffix[1]] {
-			return messageID, fmt.Errorf("invalid recipient")
+			return messageID, fmt.Errorf("invalid recipient %s", recipient)
 		}
 	} else {
-		return messageID, fmt.Errorf("incomplete recipient @ .uuu")
+		return messageID, fmt.Errorf("incomplete recipient (@ .uuu) %s", recipient)
 	}
 
 	con, err := getConnection(botID)

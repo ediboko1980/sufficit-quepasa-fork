@@ -13,9 +13,7 @@ func ReceiveMessagePreProcessing(h *messageHandler, Info wa.MessageInfo) (con *w
 	}
 
 	mutex.Lock()
-
 	_, exists := h.messages[Info.Id]
-
 	mutex.Unlock()
 
 	if exists {
