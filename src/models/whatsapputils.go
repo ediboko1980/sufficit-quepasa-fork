@@ -28,7 +28,7 @@ func CreateQPMessage(Info wa.MessageInfo) (message QPMessage) {
 	return
 }
 
-func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
+func (message *QPMessage) FillHeader(Info wa.MessageInfo, con wa.Conn) {
 	contact, ok := con.Store.Contacts[Info.RemoteJid]
 	if ok {
 		message.Name = contact.Name
