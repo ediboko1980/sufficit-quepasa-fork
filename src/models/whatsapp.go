@@ -211,10 +211,10 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 		return messageID, err
 	}
 
-	formattedRecipient, _ := CleanPhoneNumber(recipient)
+	//formattedRecipient, _ := CleanPhoneNumber(recipient)
 	textMessage := wa.TextMessage{
 		Info: wa.MessageInfo{
-			RemoteJid: formattedRecipient + "@s.whatsapp.net",
+			RemoteJid: recipient, //formattedRecipient + "@s.whatsapp.net",
 		},
 		Text: message,
 	}
