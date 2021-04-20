@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
@@ -36,7 +35,7 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 	}
 
 	message.ReplyTo = Info.RemoteJid
-	log.Printf("con.Info.Wid: %s :: contact.Name: %s :: RemoteJid: %s", con.Info.Wid, contact.Name, Info.RemoteJid)
+	//log.Printf("con.Info.Wid: %s :: contact.Name: %s :: RemoteJid: %s", con.Info.Wid, contact.Name, Info.RemoteJid)
 
 	//currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
 	//currentUserID = currentUserID + "@s.whatsapp.net"
