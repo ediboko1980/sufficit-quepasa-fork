@@ -260,17 +260,15 @@ func ReceiveMessages(botID string, timestamp string) ([]QPMessage, error) {
 }
 
 func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]QPMessage, error) {
-	if con != nil {
-		return nil, fmt.Errorf("SUFF ERROR I :: connection not found for botID %s", botID)
-	}
-
 	userIDs := make(map[string]bool)
 	messages := make(map[string]QPMessage)
 	handler := &messageHandler{botID, userIDs, messages, true}
-	if handler != nil {
+
+	if con != nil {
 		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
+		con.RemoveHandlers()
 	}
-	con.RemoveHandlers()
+
 	return messages, nil
 }
 
