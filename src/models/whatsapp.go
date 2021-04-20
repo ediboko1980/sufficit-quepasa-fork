@@ -65,9 +65,9 @@ func startHandlers() error {
 	}
 
 	for _, bot := range bots {
-		log.Printf("(%s) :: Adding message handlers for %s", bot.ID, bot.Number)
+		log.Printf("(%s) :: Adding message handlers for %s with token: %s", bot.ID, bot.Number, bot.Token)
 
-		err = startHandler(bot.ID, bot.Token)
+		err = startHandler(bot.ID)
 		if err != nil {
 			return err
 		}
@@ -76,13 +76,12 @@ func startHandlers() error {
 	return nil
 }
 
-func startHandler(botID string, botToken string) error {
+func startHandler(botID string) error {
 	con, err := createConnection()
 	if err != nil {
 		return err
 	}
 
-	logPrefix := botToken
 	server.connections[botID] = con
 
 	userIDs := make(map[string]bool)
@@ -108,13 +107,13 @@ func startHandler(botID string, botToken string) error {
 
 	con.RemoveHandlers()
 
-	log.Printf("(%s) :: Fetching initial messages", logPrefix)
+	log.Printf("(%s) :: Fetching initial messages", botID)
 	initialMessages, err := fetchMessages(con, botID, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("(%s) :: Setting up long-running message handler", logPrefix)
+	log.Printf("(%s) :: Setting up long-running message handler", botID)
 	asyncMessageHandler := &messageHandler{botID, startupHandler.userIDs, initialMessages, false}
 	server.handlers[botID] = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
