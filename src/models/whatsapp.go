@@ -204,13 +204,29 @@ func SignIn(botID string, out chan<- []byte) error {
 	return writeSession(botID, session)
 }
 
-func SendMessage(botID string, recipient string, message string) (string, error) {
-	var messageID string
-	con, err := getConnection(botID)
-	if err != nil {
-		return messageID, err
+func SendMessage(botID string, recipient string, message string) (messageID string, err error) {
+	recipient = strings.TrimLeft(recipient, "+")
+
+	allowedSuffix := map[string]bool{
+		"g.us":           true, // Mensagem para um grupo
+		"s.whatsapp.net": true, // Mensagem direta a um usuário
 	}
 
+	if strings.ContainsAny(recipient, "@") {
+		suffix := strings.Split(recipient, "@")
+		if !allowedSuffix[suffix[1]] {
+			return messageID, fmt.Errorf("invalid recipient")
+		}
+	} else {
+		return messageID, fmt.Errorf("incomplete recipient @ .uuu")
+	}
+
+	con, err := getConnection(botID)
+	if err != nil {
+		return
+	}
+
+	log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
 	//formattedRecipient, _ := CleanPhoneNumber(recipient)
 	textMessage := wa.TextMessage{
 		Info: wa.MessageInfo{
@@ -220,45 +236,43 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 	}
 
 	messageID, err = con.Send(textMessage)
-	if err != nil {
-		return messageID, err
-	}
-
-	//go func() {
-	//	RestartServer()
-	//}()
-
-	return messageID, nil
+	return
 }
 
-//
-// ReceiveMessages
-//
-
-func ReceiveMessages(botID string, timestamp string) ([]QPMessage, error) {
-	var messages []QPMessage
-	searchTimestamp, err := strconv.ParseUint(timestamp, 10, 64)
-	if err != nil {
+// Receive messages from the controller, external
+func ReceiveMessages(botID string, timestamp string) (messages []QPMessage, err error) {
+	searchTimestamp, _ := strconv.ParseUint(timestamp, 10, 64)
+	if searchTimestamp == 0 {
 		searchTimestamp = 1000000
 	}
 
 	handler, ok := server.handlers[botID]
 	if !ok {
-		return messages, nil
+		err = fmt.Errorf("handlers not read yet, please wait")
+		return
 	}
 
+	mutex := &sync.Mutex{}
 	for _, msg := range handler.messages {
 		if msg.Timestamp >= searchTimestamp {
+			mutex.Lock() // travando multi threading
+
+			// Incluindo mensagem na lista de retorno
 			messages = append(messages, msg)
+
+			mutex.Unlock() // destravando multi threading
 		}
 	}
 
+	mutex.Lock() // travando multi threading
 	sort.Sort(ByTimestamp(messages))
+	mutex.Unlock() // destravando multi threading
 
-	return messages, nil
+	return
 }
 
 func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]QPMessage, error) {
+
 	userIDs := make(map[string]bool)
 	messages := make(map[string]QPMessage)
 	handler := &messageHandler{botID, userIDs, messages, true}
@@ -299,7 +313,9 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 // Message handler
 
 func (h *messageHandler) HandleJsonMessage(message string) {
-	fmt.Println("JsonMessage: " + message)
+	if isDevelopment() {
+		fmt.Println("JsonMessage: " + message)
+	}
 }
 
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
@@ -493,7 +509,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 }
 
 func AppenMsgToCache(h *messageHandler, msg QPMessage, RemoteJid string) error {
-	var mutex = &sync.Mutex{}
+	mutex := &sync.Mutex{}
 	mutex.Lock()
 
 	if h != nil {
@@ -510,6 +526,8 @@ func (h *messageHandler) HandleError(publicError error) {
 		log.Printf("SUFF ERROR B :: Connection failed, underlying error: %v", e.Err)
 		<-time.After(10 * time.Second)
 		RestartServer()
+	} else if strings.Contains(publicError.Error(), "received invalid data") {
+		return // ignorando erro conhecido
 	} else if strings.Contains(publicError.Error(), "tag 174") {
 		log.Printf("SUFF ERROR D :: Binary decode error, underlying error: %v", publicError)
 		<-time.After(10 * time.Second)
@@ -519,7 +537,7 @@ func (h *messageHandler) HandleError(publicError error) {
 		<-time.After(10 * time.Second)
 		RestartServer()
 	} else {
-		log.Printf("SUFF ERROR E :: Message handler error: %v\n", publicError)
+		log.Printf("SUFF ERROR E :: Message handler error: %v\n", publicError.Error())
 	}
 }
 
