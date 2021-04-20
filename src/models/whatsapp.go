@@ -67,7 +67,7 @@ func startHandlers() error {
 	for _, bot := range bots {
 		log.Printf("(%s) :: Adding message handlers for %s", bot.ID, bot.Number)
 
-		err = startHandler(bot.ID)
+		err = startHandler(bot.ID, bot.Token)
 		if err != nil {
 			return err
 		}
@@ -76,12 +76,13 @@ func startHandlers() error {
 	return nil
 }
 
-func startHandler(botID string) error {
+func startHandler(botID string, botToken string) error {
 	con, err := createConnection()
 	if err != nil {
 		return err
 	}
 
+	logPrefix := botToken
 	server.connections[botID] = con
 
 	userIDs := make(map[string]bool)
@@ -107,13 +108,13 @@ func startHandler(botID string) error {
 
 	con.RemoveHandlers()
 
-	log.Printf("(%s) :: Fetching initial messages", botID)
+	log.Printf("(%s) :: Fetching initial messages", logPrefix)
 	initialMessages, err := fetchMessages(con, botID, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("(%s) :: Setting up long-running message handler", botID)
+	log.Printf("(%s) :: Setting up long-running message handler", logPrefix)
 	asyncMessageHandler := &messageHandler{botID, startupHandler.userIDs, initialMessages, false}
 	server.handlers[botID] = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
@@ -259,6 +260,10 @@ func ReceiveMessages(botID string, timestamp string) ([]QPMessage, error) {
 }
 
 func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]QPMessage, error) {
+	if con != nil {
+		return nil, fmt.Errorf("SUFF ERROR I :: connection not found for botID %s", botID)
+	}
+
 	userIDs := make(map[string]bool)
 	messages := make(map[string]QPMessage)
 	handler := &messageHandler{botID, userIDs, messages, true}
