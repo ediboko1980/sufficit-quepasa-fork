@@ -23,6 +23,7 @@ type WhatsAppServer struct {
 }
 
 var server *WhatsAppServer
+var mutex = &sync.Mutex{}
 
 type messageHandler struct {
 	botID       string
@@ -252,7 +253,6 @@ func ReceiveMessages(botID string, timestamp string) (messages []QPMessage, err 
 		return
 	}
 
-	mutex := &sync.Mutex{}
 	for _, msg := range handler.messages {
 		if msg.Timestamp >= searchTimestamp {
 			mutex.Lock() // travando multi threading
@@ -298,7 +298,6 @@ func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[str
 		}
 
 		for messageID, message := range userMessages {
-			var mutex = &sync.Mutex{}
 			mutex.Lock()
 
 			messages[messageID] = message
@@ -509,7 +508,6 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 }
 
 func AppenMsgToCache(h *messageHandler, msg QPMessage, RemoteJid string) error {
-	mutex := &sync.Mutex{}
 	mutex.Lock()
 
 	if h != nil {

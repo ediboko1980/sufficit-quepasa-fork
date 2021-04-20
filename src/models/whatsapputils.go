@@ -12,7 +12,12 @@ func ReceiveMessagePreProcessing(h *messageHandler, Info wa.MessageInfo) (con *w
 		return
 	}
 
+	mutex.Lock()
+
 	_, exists := h.messages[Info.Id]
+
+	mutex.Unlock()
+
 	if exists {
 		err = fmt.Errorf("message (%s) already exists on this handler", Info.Id)
 	}
