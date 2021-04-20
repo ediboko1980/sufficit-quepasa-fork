@@ -225,9 +225,9 @@ func SendMessage(botID string, recipient string, message string) (string, error)
 		return messageID, err
 	}
 
-	go func() {
-		RestartServer()
-	}()
+	//go func() {
+	//	RestartServer()
+	//}()
 
 	return messageID, nil
 }
