@@ -512,6 +512,10 @@ func (h *messageHandler) HandleError(publicError error) {
 		log.Printf("SUFF ERROR D :: Binary decode error, underlying error: %v", publicError)
 		<-time.After(10 * time.Second)
 		//RestartServer()
+	} else if strings.Contains(publicError.Error(), "code: 1000") {
+		log.Printf("SUFF ERROR H :: %v\n", publicError)
+		<-time.After(10 * time.Second)
+		RestartServer()
 	} else {
 		log.Printf("SUFF ERROR E :: Message handler error: %v\n", publicError)
 	}
