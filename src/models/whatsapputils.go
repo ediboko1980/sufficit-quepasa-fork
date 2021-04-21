@@ -40,13 +40,13 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 	message.ReplyTo = Info.RemoteJid
 	//log.Printf("con.Info.Wid: %s :: contact.Name: %s :: RemoteJid: %s", con.Info.Wid, contact.Name, Info.RemoteJid)
 
-	//currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	//currentUserID = currentUserID + "@s.whatsapp.net"
+	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
+	currentUserID = "+" + currentUserID
 	if Info.FromMe {
-		message.Source = con.Info.Wid
+		message.Source = currentUserID
 		message.Recipient = Info.RemoteJid
 	} else {
 		message.Source = Info.RemoteJid
-		message.Recipient = con.Info.Wid
+		message.Recipient = currentUserID
 	}
 }
