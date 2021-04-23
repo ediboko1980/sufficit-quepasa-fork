@@ -41,17 +41,19 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 	// Enderço correto para onde deve ser devolvida a msg
 	message.ReplyTo = Info.RemoteJid
 
-	// Extremidade (pessoa que enviou a msg)
-	remoteEndPoint := Info.RemoteJid
-
-	// Mensagem vinda de um grupo
-	if strings.HasSuffix(Info.RemoteJid, "@g.us") {
-		remoteEndPoint = *Info.Source.Participant
-	}
-
 	// con.Info.Wid = Whatsapp que esta processando a msg
 	currentWhatsAppBot, _ := CleanPhoneNumber(con.Info.Wid)
 	currentWhatsAppBot = "+" + currentWhatsAppBot
+
+	// Extremidade (pessoa que enviou a msg)
+	remoteEndPoint := message.ReplyTo
+
+	// Mensagem vinda de um grupo
+	if strings.HasSuffix(remoteEndPoint, "@g.us") {
+		if Info.Source.Participant != nil {
+			remoteEndPoint = *Info.Source.Participant
+		}
+	}
 
 	// Destino, indo ou vindo
 	remoteEndPoint, _ = CleanPhoneNumber(remoteEndPoint)
@@ -64,4 +66,6 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 		message.Source = remoteEndPoint
 		message.Recipient = currentWhatsAppBot
 	}
+
+	//log.Printf("ME?: %s :: currentWhatsAppBot: %s :: remoteEndPoint: %s", Info.FromMe, currentWhatsAppBot, remoteEndPoint)
 }
