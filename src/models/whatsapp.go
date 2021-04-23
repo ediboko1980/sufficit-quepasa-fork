@@ -318,83 +318,43 @@ func (h *messageHandler) HandleJsonMessage(message string) {
 }
 
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: ImageMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Imagem recebida: " + msg.Type
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: LocationMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Localização recebida ... "
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: LiveLocationMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Localização em tempo real recebida ... "
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -410,85 +370,43 @@ func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
 }
 
 func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: DocumentMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Documento recebido: " + msg.Type + " :: " + msg.FileName
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: ContactMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Contato VCARD recebido ... "
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
 
 func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
-	con, err := getConnection(h.botID)
+	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
+		log.Printf("SUFF ERROR G :: AudioMessage error on pre processing received message: %v", err)
 		return
 	}
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = currentUserID + "@s.whatsapp.net"
-
-	message := QPMessage{}
-	message.ID = msg.Info.Id
-	message.Timestamp = msg.Info.Timestamp
+	message := CreateQPMessage(msg.Info)
+	message.FillHeader(msg.Info, con)
 	message.Body = "Audio recebido: " + msg.Type
-	contact, ok := con.Store.Contacts[msg.Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
-	if msg.Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = msg.Info.RemoteJid
-	} else {
-		message.Source = msg.Info.RemoteJid
-		message.Recipient = currentUserID
-	}
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -496,7 +414,7 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
-		log.Printf("SUFF ERROR G :: error on pre processing received message: %v", err)
+		log.Printf("SUFF ERROR G :: TextMessage error on pre processing received message: %v", err)
 		return
 	}
 
