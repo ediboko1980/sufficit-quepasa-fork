@@ -317,6 +317,16 @@ func (h *messageHandler) HandleJsonMessage(message string) {
 	}
 }
 
+func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Printf("INFO :: %#v\n", string(b))
+}
+
 func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	if err != nil {
@@ -357,16 +367,6 @@ func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
 	message.Body = "Localização em tempo real recebida ... "
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
-}
-
-func (h *messageHandler) HandleInfoMessage(msg wa.MessageInfo) {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	log.Printf("INFO :: %#v\n", string(b))
 }
 
 func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {

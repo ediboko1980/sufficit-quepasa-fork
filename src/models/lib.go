@@ -9,8 +9,8 @@ import (
 var ErrEnvVarEmpty = errors.New("getenv: environment variable empty")
 
 func isDevelopment() bool {
-	environment, err := getenvStr("APP_ENV")
-	if err != nil && environment == "development" {
+	environment, _ := getenvStr("APP_ENV")
+	if environment == "development" {
 		return true
 	} else {
 		return false
