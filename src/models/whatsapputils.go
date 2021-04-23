@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
@@ -37,16 +38,30 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 		message.Name = contact.Name
 	}
 
+	// Enderço correto para onde deve ser devolvida a msg
 	message.ReplyTo = Info.RemoteJid
-	//log.Printf("con.Info.Wid: %s :: contact.Name: %s :: RemoteJid: %s", con.Info.Wid, contact.Name, Info.RemoteJid)
 
-	currentUserID, _ := CleanPhoneNumber(con.Info.Wid)
-	currentUserID = "+" + currentUserID
+	// Extremidade (pessoa que enviou a msg)
+	remoteEndPoint := Info.RemoteJid
+
+	// Mensagem vinda de um grupo
+	if strings.HasSuffix(Info.RemoteJid, "@g.us") {
+		remoteEndPoint = *Info.Source.Participant
+	}
+
+	// con.Info.Wid = Whatsapp que esta processando a msg
+	currentWhatsAppBot, _ := CleanPhoneNumber(con.Info.Wid)
+	currentWhatsAppBot = "+" + currentWhatsAppBot
+
+	// Destino, indo ou vindo
+	remoteEndPoint, _ = CleanPhoneNumber(remoteEndPoint)
+	remoteEndPoint = "+" + remoteEndPoint
+
 	if Info.FromMe {
-		message.Source = currentUserID
-		message.Recipient = Info.RemoteJid
+		message.Source = currentWhatsAppBot
+		message.Recipient = remoteEndPoint
 	} else {
-		message.Source = Info.RemoteJid
-		message.Recipient = currentUserID
+		message.Source = remoteEndPoint
+		message.Recipient = currentWhatsAppBot
 	}
 }
