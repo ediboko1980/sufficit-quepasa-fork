@@ -38,8 +38,12 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 		message.Name = contact.Name
 	}
 
-	// Enderço correto para onde deve ser devolvida a msg
+	// Endereço correto para onde deve ser devolvida a msg
 	message.ReplyTo = Info.RemoteJid
+	if Info.Source.Participant != nil {
+		// Pessoa que enviou a msg dentro de um grupo
+		message.Participant = *Info.Source.Participant
+	}
 
 	// con.Info.Wid = Whatsapp que esta processando a msg
 	currentWhatsAppBot, _ := CleanPhoneNumber(con.Info.Wid)
