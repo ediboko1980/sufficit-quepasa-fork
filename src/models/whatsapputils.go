@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"strings"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
@@ -33,43 +32,56 @@ func CreateQPMessage(Info wa.MessageInfo) (message QPMessage) {
 }
 
 func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
-	contact, ok := con.Store.Contacts[Info.RemoteJid]
-	if ok {
-		message.Name = contact.Name
-	}
+
+	// Fui eu quem enviou a msg ?
+	message.FromMe = Info.FromMe
+
+	// Controlador, whatsapp gerenciador
+	message.Controller.ID = con.Info.Wid
+	message.Controller.Phone = getPhone(con.Info.Wid)
+	message.Controller.Title = getTitle(con.Store, con.Info.Wid)
 
 	// Endereço correto para onde deve ser devolvida a msg
-	message.ReplyTo = Info.RemoteJid
+	message.ReplyTo.ID = Info.RemoteJid
+	message.ReplyTo.Phone = getPhone(Info.RemoteJid)
+	message.ReplyTo.Title = getTitle(con.Store, Info.RemoteJid)
+
+	// Pessoa que enviou a msg dentro de um grupo
 	if Info.Source.Participant != nil {
-		// Pessoa que enviou a msg dentro de um grupo
-		message.Participant = *Info.Source.Participant
+		message.Participant.ID = *Info.Source.Participant
+		message.Participant.Phone = getPhone(*Info.Source.Participant)
+		message.Participant.Title = getTitle(con.Store, *Info.Source.Participant)
 	}
+}
 
-	// con.Info.Wid = Whatsapp que esta processando a msg
-	currentWhatsAppBot, _ := CleanPhoneNumber(con.Info.Wid)
-	currentWhatsAppBot = "+" + currentWhatsAppBot
+func getPhone(textPhone string) string {
+	var result string
+	phone, err := CleanPhoneNumber(textPhone)
+	if err == nil {
+		result = "+" + phone
+	}
+	return result
+}
 
-	// Extremidade (pessoa que enviou a msg)
-	remoteEndPoint := message.ReplyTo
+// Retorna algum titulo válido apartir de um jid
+func getTitle(store *wa.Store, jid string) string {
+	var result string
+	contact, ok := store.Contacts[jid]
+	if ok {
+		result = getContactTitle(contact)
+	}
+	return result
+}
 
-	// Mensagem vinda de um grupo
-	if strings.HasSuffix(remoteEndPoint, "@g.us") {
-		if Info.Source.Participant != nil {
-			remoteEndPoint = *Info.Source.Participant
+// Retorna algum titulo válido apartir de um contato do whatsapp
+func getContactTitle(contact wa.Contact) string {
+	var result string
+	result = contact.Name
+	if len(result) == 0 {
+		result = contact.Notify
+		if len(result) == 0 {
+			result = contact.Short
 		}
 	}
-
-	// Destino, indo ou vindo
-	remoteEndPoint, _ = CleanPhoneNumber(remoteEndPoint)
-	remoteEndPoint = "+" + remoteEndPoint
-
-	if Info.FromMe {
-		message.Source = currentWhatsAppBot
-		message.Recipient = remoteEndPoint
-	} else {
-		message.Source = remoteEndPoint
-		message.Recipient = currentWhatsAppBot
-	}
-
-	//log.Printf("ME?: %s :: currentWhatsAppBot: %s :: remoteEndPoint: %s", Info.FromMe, currentWhatsAppBot, remoteEndPoint)
+	return result
 }

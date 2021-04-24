@@ -61,6 +61,10 @@ func GetUser(r *http.Request) (User, error) {
 // CleanPhoneNumber removes all non-numeric characters from a string
 func CleanPhoneNumber(number string) (string, error) {
 	var out string
+	if strings.HasSuffix(number, "@g.us") {
+		return out, fmt.Errorf("this id is a group, cant be converted to phone number")
+	}
+
 	spacesRemoved := strings.Replace(number, " ", "", -1)
 	re, err := regexp.Compile(`\d*`)
 	matches := re.FindAllString(spacesRemoved, -1)

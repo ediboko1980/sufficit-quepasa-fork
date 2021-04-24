@@ -3,14 +3,26 @@ package models
 // Mensagem no formato QuePasa
 // Utilizada na API do QuePasa para troca com outros sistemas
 type QPMessage struct {
-	ID          string `json:"id"`
-	Source      string `json:"source"`
-	ReplyTo     string `json:"replyto"`
-	Participant string `json:"participant"`
-	Recipient   string `json:"recipient"`
-	Name        string `json:"name"`
-	Timestamp   uint64 `json:"timestamp"`
-	Body        string `json:"body"`
+	ID        string `json:"id"`
+	Timestamp uint64 `json:"timestamp"`
+
+	// Whatsapp que gerencia a bagaça toda
+	Controller QPEndPoint `json:"controller"`
+
+	// Endereço garantido que deve receber uma resposta
+	ReplyTo QPEndPoint `json:"replyto"`
+
+	// Se a msg foi postado em algum grupo ? quem postou !
+	Participant QPEndPoint `json:"participant"`
+
+	// Fui eu quem enviou a msg ?
+	FromMe bool `json:"fromme"`
+
+	// Forma (Content Type ou MIME) que se apresenta o corpo da msg
+	Type string `json:"type"`
+
+	// Conteudo da msg
+	Body string `json:"body"`
 }
 
 type ByTimestamp []QPMessage

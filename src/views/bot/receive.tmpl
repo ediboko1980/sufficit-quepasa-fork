@@ -8,8 +8,9 @@
 <h2 class="title is-2">Messages for {{ .Number }}</h2>
 {{ range .Messages }}
 <pre>
-From:  {{ .Source }}
-To:  {{ .Recipient }}
+From Me: {{ .FromMe }}
+ReplyTo:  {{ .ReplyTo }}
+Participant:  {{ .Participant }}
 On:  {{ .Timestamp }}
 Body: {{ .Body}}
 </pre>

@@ -406,7 +406,11 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
+
+	//  --> Personalizado para esta seção
+	message.Type = msg.Type
 	message.Body = "Audio recebido: " + msg.Type
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -420,7 +424,11 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
+
+	//  --> Personalizado para esta seção
+	message.Type = "text/plain"
 	message.Body = msg.Text
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
