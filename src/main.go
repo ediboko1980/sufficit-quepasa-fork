@@ -56,8 +56,13 @@ func main() {
 
 	r := newRouter()
 
+	webAPIPort := os.Getenv("WEBAPIPORT")
+	if len(webAPIPort) == 0 {
+		webAPIPort = "3000"
+	}
+
 	log.Println("Starting web server")
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":"+webAPIPort, r)
 }
 
 func newRouter() chi.Router {
