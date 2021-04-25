@@ -10,10 +10,10 @@ import (
 // Mensagem no formato QuePasa
 // Utilizada na API do QuePasa para troca com outros sistemas
 type QPAttachment struct {
-	Url         string
-	B64MediaKey string
-	Length      int
-	MIME        string
+	Url         string `json:"url,omitempty"`
+	B64MediaKey string `json:"b64mediakey,omitempty"`
+	Length      int    `json:"length,omitempty"`
+	MIME        string `json:"mime,omitempty"`
 }
 
 // Traz o MediaType para download do whatsapp
