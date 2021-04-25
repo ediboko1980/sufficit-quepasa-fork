@@ -464,7 +464,7 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(w, bot)
 }
 
-// AttachmentHandler renders route GET "/v1/bot/{token}/attachment"
+// AttachmentHandler renders route POST "/v1/bot/{token}/attachment"
 func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	_, err := models.FindBotByToken(models.GetDB(), token)
