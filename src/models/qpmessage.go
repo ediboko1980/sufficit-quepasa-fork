@@ -13,7 +13,7 @@ type QPMessage struct {
 	ReplyTo QPEndPoint `json:"replyto"`
 
 	// Se a msg foi postado em algum grupo ? quem postou !
-	Participant QPEndPoint `json:"participant"`
+	Participant QPEndPoint `json:"participant,omitempty"`
 
 	// Fui eu quem enviou a msg ?
 	FromMe bool `json:"fromme"`
@@ -21,7 +21,7 @@ type QPMessage struct {
 	// Texto da msg
 	Text string `json:"text"`
 
-	Attachment QPAttachment `json:"attachment"`
+	Attachment QPAttachment `json:"attachment,omitempty"`
 }
 
 type ByTimestamp []QPMessage
