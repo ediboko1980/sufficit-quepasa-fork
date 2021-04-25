@@ -8,11 +8,11 @@
 <h2 class="title is-2">Messages for {{ .Number }}</h2>
 {{ range .Messages }}
 <pre>
-From Me: {{ .FromMe }}
+From Me: {{ .FromMe }} :: Attachment: {{.Attachment }}
 ReplyTo:  {{ .ReplyTo }}
 Participant:  {{ .Participant }}
 On:  {{ .Timestamp }}
-Body: {{ .Body}}
+Text: {{ .Text}}
 </pre>
 <br/>
 {{ end }}

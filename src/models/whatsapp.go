@@ -339,12 +339,7 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 
 	//  --> Personalizado para esta seção
 	message.Text = "Imagem recebida: " + msg.Type
-	message.Attachment = QPAttachment{
-		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.ImageMessage.MediaKey),
-		Url:         *msg.Info.Source.Message.ImageMessage.Url,
-		Length:      int(*msg.Info.Source.Message.ImageMessage.FileLength),
-		MIME:        *msg.Info.Source.Message.ImageMessage.Mimetype,
-	}
+	message.FillImageAttachment(msg, con)
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
@@ -393,15 +388,10 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
+	//message.FillDocumentAttachment(msg, con)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Documento recebido: " + msg.Type + " :: " + msg.FileName
-	message.Attachment = QPAttachment{
-		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.DocumentMessage.MediaKey),
-		Url:         *msg.Info.Source.Message.DocumentMessage.Url,
-		Length:      int(*msg.Info.Source.Message.DocumentMessage.FileLength),
-		MIME:        *msg.Info.Source.Message.DocumentMessage.Mimetype,
-	}
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
@@ -436,12 +426,6 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 
 	//  --> Personalizado para esta seção
 	message.Text = "Audio recebido: " + msg.Type
-	message.Attachment = QPAttachment{
-		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.AudioMessage.MediaKey),
-		Url:         *msg.Info.Source.Message.AudioMessage.Url,
-		Length:      int(*msg.Info.Source.Message.AudioMessage.FileLength),
-		MIME:        *msg.Info.Source.Message.AudioMessage.Mimetype,
-	}
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
