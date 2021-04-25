@@ -125,6 +125,9 @@ func addAPIRoutes(r chi.Router) {
 		r.Get("/v1/bot/{token}", controllers.InfoAPIHandler)
 		r.Post("/v1/bot/{token}/send", controllers.SendAPIHandler)
 		r.Get("/v1/bot/{token}/receive", controllers.ReceiveAPIHandler)
+
+		r.Get("/v1/bot/{token}/attachment", controllers.AttachmentHandler)
+		r.Get("/v1/bot/{token}/webhook", controllers.WebHookHandler)
 	})
 }
 

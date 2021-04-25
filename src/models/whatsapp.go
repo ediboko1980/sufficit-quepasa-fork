@@ -336,7 +336,16 @@ func (h *messageHandler) HandleImageMessage(msg wa.ImageMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	message.Body = "Imagem recebida: " + msg.Type
+
+	//  --> Personalizado para esta seção
+	message.Text = "Imagem recebida: " + msg.Type
+	message.Attachment = QPAttachment{
+		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.ImageMessage.MediaKey),
+		Url:         *msg.Info.Source.Message.ImageMessage.Url,
+		Length:      int(*msg.Info.Source.Message.ImageMessage.FileLength),
+		MIME:        *msg.Info.Source.Message.ImageMessage.Mimetype,
+	}
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -350,7 +359,10 @@ func (h *messageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	message.Body = "Localização recebida ... "
+
+	//  --> Personalizado para esta seção
+	message.Text = "Localização recebida ... "
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -364,7 +376,10 @@ func (h *messageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	message.Body = "Localização em tempo real recebida ... "
+
+	//  --> Personalizado para esta seção
+	message.Text = "Localização em tempo real recebida ... "
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -378,7 +393,16 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	message.Body = "Documento recebido: " + msg.Type + " :: " + msg.FileName
+
+	//  --> Personalizado para esta seção
+	message.Text = "Documento recebido: " + msg.Type + " :: " + msg.FileName
+	message.Attachment = QPAttachment{
+		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.DocumentMessage.MediaKey),
+		Url:         *msg.Info.Source.Message.DocumentMessage.Url,
+		Length:      int(*msg.Info.Source.Message.DocumentMessage.FileLength),
+		MIME:        *msg.Info.Source.Message.DocumentMessage.Mimetype,
+	}
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -392,7 +416,10 @@ func (h *messageHandler) HandleContactMessage(msg wa.ContactMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	message.Body = "Contato VCARD recebido ... "
+
+	//  --> Personalizado para esta seção
+	message.Text = "Contato VCARD recebido ... "
+	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
 }
@@ -408,8 +435,13 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 	message.FillHeader(msg.Info, con)
 
 	//  --> Personalizado para esta seção
-	message.Type = msg.Type
-	message.Body = "Audio recebido: " + msg.Type
+	message.Text = "Audio recebido: " + msg.Type
+	message.Attachment = QPAttachment{
+		B64MediaKey: base64.StdEncoding.EncodeToString(msg.Info.Source.Message.AudioMessage.MediaKey),
+		Url:         *msg.Info.Source.Message.AudioMessage.Url,
+		Length:      int(*msg.Info.Source.Message.AudioMessage.FileLength),
+		MIME:        *msg.Info.Source.Message.AudioMessage.Mimetype,
+	}
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
@@ -426,8 +458,7 @@ func (h *messageHandler) HandleTextMessage(msg wa.TextMessage) {
 	message.FillHeader(msg.Info, con)
 
 	//  --> Personalizado para esta seção
-	message.Type = "text/plain"
-	message.Body = msg.Text
+	message.Text = msg.Text
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)

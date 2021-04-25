@@ -18,11 +18,10 @@ type QPMessage struct {
 	// Fui eu quem enviou a msg ?
 	FromMe bool `json:"fromme"`
 
-	// Forma (Content Type ou MIME) que se apresenta o corpo da msg
-	Type string `json:"type"`
+	// Texto da msg
+	Text string `json:"text"`
 
-	// Conteudo da msg
-	Body string `json:"body"`
+	Attachment QPAttachment `json:"attachment"`
 }
 
 type ByTimestamp []QPMessage

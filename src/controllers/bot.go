@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 
+	"github.com/Rhymen/go-whatsapp"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus"
@@ -447,6 +449,57 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/account", http.StatusFound)
+}
+
+// SUFFICIT -------------------
+
+func WebHookHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	bot, err := models.FindBotByToken(models.GetDB(), token)
+	if err != nil {
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		return
+	}
+
+	respondSuccess(w, bot)
+}
+
+// AttachmentHandler renders route GET "/v1/bot/{token}/attachment"
+func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	_, err := models.FindBotByToken(models.GetDB(), token)
+	if err != nil {
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		return
+	}
+
+	// Declare a new Person struct.
+	var p models.QPAttachment
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err = json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		respondServerError(w, err)
+	}
+
+	mediaKey, err := p.MediaKey()
+	if err != nil {
+		respondServerError(w, err)
+		return
+	}
+
+	data, err := whatsapp.Download(p.Url, mediaKey, p.WAMediaType(), p.Length)
+	if err != nil {
+		// se for  "invalid media hmac" é bem provavel que seja de outra conexão
+		// só é possivel baixar pela url sendo da mesma conexão
+		respondServerError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", p.MIME)
+	w.Write(data)
 }
 
 //
