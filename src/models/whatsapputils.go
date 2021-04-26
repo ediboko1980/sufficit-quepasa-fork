@@ -55,7 +55,21 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 	}
 }
 
-func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa.Conn) error {
+func (message *QPMessage) FillAudioAttachment(msg wa.AudioMessage, con *wa.Conn) {
+	getKey := msg.Info.Source.Message.AudioMessage.MediaKey
+	getUrl := *msg.Info.Source.Message.AudioMessage.Url
+	getLength := *msg.Info.Source.Message.AudioMessage.FileLength
+	getMIME := *msg.Info.Source.Message.AudioMessage.Mimetype
+
+	message.Attachment = QPAttachment{
+		B64MediaKey: base64.StdEncoding.EncodeToString(getKey),
+		Url:         getUrl,
+		Length:      int(getLength),
+		MIME:        getMIME,
+	}
+}
+
+func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa.Conn) {
 	getKey := msg.Info.Source.Message.DocumentMessage.MediaKey
 	getUrl := *msg.Info.Source.Message.DocumentMessage.Url
 	getLength := *msg.Info.Source.Message.DocumentMessage.FileLength
@@ -67,7 +81,6 @@ func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa
 		Length:      int(getLength),
 		MIME:        getMIME,
 	}
-	return nil
 }
 
 func (message *QPMessage) FillImageAttachment(msg wa.ImageMessage, con *wa.Conn) {

@@ -388,10 +388,10 @@ func (h *messageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, con)
-	//message.FillDocumentAttachment(msg, con)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Documento recebido: " + msg.Type + " :: " + msg.FileName
+	message.FillDocumentAttachment(msg, con)
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
@@ -426,6 +426,7 @@ func (h *messageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 
 	//  --> Personalizado para esta seção
 	message.Text = "Audio recebido: " + msg.Type
+	message.FillAudioAttachment(msg, con)
 	//  <--
 
 	AppenMsgToCache(h, message, msg.Info.RemoteJid)
