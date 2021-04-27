@@ -30,6 +30,7 @@ type messageHandler struct {
 	userIDs     map[string]bool
 	messages    map[string]QPMessage
 	synchronous bool
+	Bot         Bot
 }
 
 //
@@ -68,7 +69,7 @@ func startHandlers() error {
 	for _, bot := range bots {
 		log.Printf("(%s) :: Adding message handlers for %s with token: %s", bot.ID, bot.Number, bot.Token)
 
-		err = startHandler(bot.ID)
+		err = startHandler(bot)
 		if err != nil {
 			return err
 		}
@@ -77,20 +78,20 @@ func startHandlers() error {
 	return nil
 }
 
-func startHandler(botID string) error {
+func startHandler(bot Bot) error {
 	con, err := createConnection()
 	if err != nil {
 		return err
 	}
 
-	server.connections[botID] = con
+	server.connections[bot.ID] = con
 
 	userIDs := make(map[string]bool)
 	messages := make(map[string]QPMessage)
-	startupHandler := &messageHandler{botID, userIDs, messages, true}
+	startupHandler := &messageHandler{bot.ID, userIDs, messages, true, bot}
 	con.AddHandler(startupHandler)
 
-	session, err := readSession(botID)
+	session, err := readSession(bot.ID)
 	if err != nil {
 		return err
 	}
@@ -102,21 +103,21 @@ func startHandler(botID string) error {
 
 	<-time.After(3 * time.Second)
 
-	if err := writeSession(botID, session); err != nil {
+	if err := writeSession(bot.ID, session); err != nil {
 		return err
 	}
 
 	con.RemoveHandlers()
 
-	log.Printf("(%s) :: Fetching initial messages", botID)
-	initialMessages, err := fetchMessages(con, botID, startupHandler.userIDs)
+	log.Printf("(%s) :: Fetching initial messages", bot.ID)
+	initialMessages, err := fetchMessages(con, bot, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("(%s) :: Setting up long-running message handler", botID)
-	asyncMessageHandler := &messageHandler{botID, startupHandler.userIDs, initialMessages, false}
-	server.handlers[botID] = asyncMessageHandler
+	log.Printf("(%s) :: Setting up long-running message handler", bot.ID)
+	asyncMessageHandler := &messageHandler{bot.ID, startupHandler.userIDs, initialMessages, false, bot}
+	server.handlers[bot.ID] = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
 
 	return nil
@@ -271,11 +272,11 @@ func ReceiveMessages(botID string, timestamp string) (messages []QPMessage, err 
 	return
 }
 
-func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[string]QPMessage, error) {
+func loadMessages(con *wa.Conn, bot Bot, userID string, count int) (map[string]QPMessage, error) {
 
 	userIDs := make(map[string]bool)
 	messages := make(map[string]QPMessage)
-	handler := &messageHandler{botID, userIDs, messages, true}
+	handler := &messageHandler{bot.ID, userIDs, messages, true, bot}
 
 	if con != nil {
 		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
@@ -285,14 +286,14 @@ func loadMessages(con *wa.Conn, botID string, userID string, count int) (map[str
 	return messages, nil
 }
 
-func fetchMessages(con *wa.Conn, botID string, userIDs map[string]bool) (map[string]QPMessage, error) {
+func fetchMessages(con *wa.Conn, bot Bot, userIDs map[string]bool) (map[string]QPMessage, error) {
 	messages := make(map[string]QPMessage)
 
 	for userID := range userIDs {
 		if string(userID[0]) == "+" {
 			continue
 		}
-		userMessages, err := loadMessages(con, botID, userID, 50)
+		userMessages, err := loadMessages(con, bot, userID, 50)
 		if err != nil {
 			return messages, err
 		}
@@ -458,6 +459,9 @@ func AppenMsgToCache(h *messageHandler, msg QPMessage, RemoteJid string) error {
 	}
 
 	mutex.Unlock()
+
+	_ = h.Bot.PostToWebHook(msg)
+
 	return nil
 }
 

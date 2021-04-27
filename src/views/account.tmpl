@@ -15,7 +15,8 @@
           <th>Number</th>
           <th>Verified</th>
           <th>Token</th>
-          <th></th>
+          <th>Actions</th>
+          <th>WebHook</th>
         </tr>
         </thead>
         <tbody>
@@ -32,15 +33,17 @@
             </td>
             <td>
               <code>{{ .Token }}</code>
-              <form class="" method="post" action="/bot/cycle">
-                <input name="botID" type="hidden" value="{{ .ID }}">
-                <button class="button" title="Reset the token">
-                  <span class="icon is-small"><i class="fa fa-sync"></i></span>
-                </button>
-              </form>
             </td>
-            <td>
+            <td>              
               <div class="field has-addons">
+                <p class="control">
+                  <form class="" method="post" action="/bot/cycle">
+                    <input name="botID" type="hidden" value="{{ .ID }}">
+                    <button class="button" title="Reset the token">
+                      <span class="icon is-small is-inline"><i class="fa fa-sync"></i></span>
+                    </button>
+                  </form>
+                </p>
                 {{ if .Verified }}
                 <p class="control">
                   <a href="/bot/{{ .ID }}/send" class="button"
@@ -59,6 +62,7 @@
                 </p>
               </div>
             </td>
+            <td>{{ .WebHook }}</td>
             </tr>
         {{ end }}
         </tbody>

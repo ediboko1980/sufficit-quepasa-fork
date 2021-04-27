@@ -457,7 +457,24 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
-		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		respondNotFound(w, fmt.Errorf("Token '%s' not found on WebHookHandler", token))
+		return
+	}
+
+	// Declare a new Person struct.
+	var p models.QPReqWebHook
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err = json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		respondServerError(w, err)
+	}
+
+	log.Printf("UPDATING WEBHOOK :: %#v :: %s\n", bot.ID, p.Url)
+
+	bot.WebHook = p.Url
+	if err := bot.WebHookUpdate(models.GetDB()); err != nil {
 		return
 	}
 

@@ -1,7 +1,10 @@
 package models
 
 import (
+	"bytes"
+	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +18,7 @@ type Bot struct {
 	Verified  bool   `db:"is_verified" json:"is_verified"`
 	Token     string `db:"token" json:"token"`
 	UserID    string `db:"user_id" json:"user_id"`
+	WebHook   string `db:"webhook" json:"webhook"`
 	CreatedAt string `db:"created_at" json:"created_at"`
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
@@ -91,4 +95,25 @@ func (bot *Bot) FormattedNumber() string {
 		log.Printf("SUFF ERROR G :: error on regex: %v\n", err)
 	}
 	return phoneNumber
+}
+
+func (bot *Bot) WebHookUpdate(db *sqlx.DB) error {
+	now := time.Now().Format(time.RFC3339)
+	query := "UPDATE bots SET webhook = $1, updated_at = $2 WHERE id = $3"
+	_, err := db.Exec(query, bot.WebHook, now, bot.ID)
+	return err
+}
+
+func (bot *Bot) PostToWebHook(message QPMessage) error {
+	if len(bot.WebHook) > 0 {
+		payloadJson, _ := json.Marshal(&struct {
+			Message QPMessage `json:"message"`
+		}{Message: message})
+		requestBody := bytes.NewBuffer(payloadJson)
+		_, err := http.Post(bot.WebHook, "application/json", requestBody)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+	return nil
 }
