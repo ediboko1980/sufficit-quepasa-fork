@@ -3,8 +3,10 @@ package models
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,15 +106,33 @@ func (bot *Bot) WebHookUpdate(db *sqlx.DB) error {
 	return err
 }
 
+func (bot *Bot) WebHookSincronize(db *sqlx.DB) {
+	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE number = $1", bot.Number)
+}
+
+// Encaminha msg ao WebHook específicado
 func (bot *Bot) PostToWebHook(message QPMessage) error {
 	if len(bot.WebHook) > 0 {
 		payloadJson, _ := json.Marshal(&struct {
 			Message QPMessage `json:"message"`
 		}{Message: message})
 		requestBody := bytes.NewBuffer(payloadJson)
-		_, err := http.Post(bot.WebHook, "application/json", requestBody)
-		if err != nil {
-			log.Fatalln(err)
+		resp, _ := http.Post(bot.WebHook, "application/json", requestBody)
+
+		if resp != nil {
+			defer resp.Body.Close()
+			if resp.StatusCode == 422 {
+				body, _ := ioutil.ReadAll(resp.Body)
+				if body != nil && strings.Contains(string(body), "invalid callback token") {
+
+					// Sincroniza o token mais novo
+					bot.WebHookSincronize(GetDB())
+
+					// Preenche o body novamente pois foi esvaziado na requisição anterior
+					requestBody = bytes.NewBuffer(payloadJson)
+					http.Post(bot.WebHook, "application/json", requestBody)
+				}
+			}
 		}
 	}
 	return nil

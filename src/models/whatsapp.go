@@ -460,7 +460,8 @@ func AppenMsgToCache(h *messageHandler, msg QPMessage, RemoteJid string) error {
 
 	mutex.Unlock()
 
-	_ = h.Bot.PostToWebHook(msg)
+	// Executando WebHook de forma assincrona
+	go h.Bot.PostToWebHook(msg)
 
 	return nil
 }
