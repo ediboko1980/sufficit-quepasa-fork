@@ -233,7 +233,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 		RemoteJid: recipient,
 	}
 
-	log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
+	// log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
 	if attachment.Length > 0 {
 		var data []byte
 		data, err = base64.StdEncoding.DecodeString(attachment.Base64)
@@ -250,9 +250,8 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 			caption = caption[:idx]
 		}
 
-		log.Printf("sending attachment: %s :: %s", attachment.MIME, attachment.FileName)
 		switch attachment.MIME {
-		case "audio/ogg", "audio/mp3":
+		case "audio/ogg", "audio/mpeg":
 			{
 				ptt := attachment.MIME == "audio/ogg"
 				msg := wa.AudioMessage{
@@ -293,6 +292,10 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 			Text: text,
 		}
 		messageID, err = con.Send(msg)
+	}
+
+	if err != nil {
+		log.Printf("(%s) recipient: %s :: error sending message, attachment: %s :: %s", botID, recipient, attachment.MIME, attachment.FileName)
 	}
 
 	return
