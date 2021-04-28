@@ -71,13 +71,13 @@ func (message *QPMessage) FillAudioAttachment(msg wa.AudioMessage, con *wa.Conn)
 
 func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa.Conn) {
 	innerMSG := msg.Info.Source.Message.DocumentMessage
-	filename := &innerMSG.FileName
+	//filename := &innerMSG.FileName
 	message.Attachment = QPAttachment{
 		B64MediaKey: base64.StdEncoding.EncodeToString(innerMSG.MediaKey),
 		Url:         *innerMSG.Url,
 		Length:      int(*innerMSG.FileLength),
 		MIME:        *innerMSG.Mimetype,
-		FileName:    **filename,
+		//FileName:    &filename,
 	}
 }
 

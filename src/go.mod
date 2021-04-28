@@ -1,6 +1,7 @@
 module github.com/sufficit/sufficit-quepasa-fork
 
 require (
+	github.com/Rhymen/go-whatsapp v0.1.1-0.20200429202648-5e33cb4ac551 // indirect
 	github.com/cosmtrek/air v1.12.1 // indirect
 	github.com/creack/pty v1.1.10 // indirect
 	github.com/cznic/ql v1.2.0 // indirect
