@@ -58,7 +58,7 @@ func main() {
 
 	webAPIPort := os.Getenv("WEBAPIPORT")
 	if len(webAPIPort) == 0 {
-		webAPIPort = "3000"
+		webAPIPort = "31000"
 	}
 
 	log.Println("Starting web server")

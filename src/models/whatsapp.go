@@ -206,7 +206,7 @@ func SignIn(botID string, out chan<- []byte) error {
 	return writeSession(botID, session)
 }
 
-func SendMessage(botID string, recipient string, message string) (messageID string, err error) {
+func SendMessage(botID string, recipient string, text string, attachment QPAttachment) (messageID string, err error) {
 	recipient = strings.TrimLeft(recipient, "+")
 
 	allowedSuffix := map[string]bool{
@@ -228,16 +228,73 @@ func SendMessage(botID string, recipient string, message string) (messageID stri
 		return
 	}
 
-	log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
-	//formattedRecipient, _ := CleanPhoneNumber(recipient)
-	textMessage := wa.TextMessage{
-		Info: wa.MessageInfo{
-			RemoteJid: recipient, //formattedRecipient + "@s.whatsapp.net",
-		},
-		Text: message,
+	// Informações basicas para todo tipo de mensagens
+	info := wa.MessageInfo{
+		RemoteJid: recipient,
 	}
 
-	messageID, err = con.Send(textMessage)
+	log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
+	if attachment.Length > 0 {
+		var data []byte
+		data, err = base64.StdEncoding.DecodeString(attachment.Base64)
+		if err != nil {
+			return
+		}
+
+		// Definindo leitor de bytes do arquivo
+		// Futuramente fazer download de uma URL para permitir tamanhos maiores
+		reader := bytes.NewReader(data)
+
+		caption := attachment.FileName
+		if idx := strings.IndexByte(caption, '.'); idx >= 0 {
+			caption = caption[:idx]
+		}
+
+		log.Printf("sending attachment: %s :: %s", attachment.MIME, attachment.FileName)
+		switch attachment.MIME {
+		case "audio/ogg", "audio/mp3":
+			{
+				ptt := attachment.MIME == "audio/ogg"
+				msg := wa.AudioMessage{
+					Info:    info,
+					Length:  uint32(attachment.Length),
+					Type:    attachment.MIME,
+					Ptt:     ptt,
+					Content: reader,
+				}
+				messageID, err = con.Send(msg)
+			}
+		case "image/png", "image/jpeg":
+			{
+				msg := wa.ImageMessage{
+					Info:    info,
+					Caption: caption,
+					Type:    attachment.MIME,
+					Content: reader,
+				}
+				messageID, err = con.Send(msg)
+			}
+		default:
+			{
+				msg := wa.DocumentMessage{
+					Info:     info,
+					Title:    caption,
+					FileName: attachment.FileName,
+					Type:     attachment.MIME,
+					Content:  reader,
+				}
+				messageID, err = con.Send(msg)
+			}
+		}
+
+	} else if len(text) > 0 {
+		msg := wa.TextMessage{
+			Info: info,
+			Text: text,
+		}
+		messageID, err = con.Send(msg)
+	}
+
 	return
 }
 

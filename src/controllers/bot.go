@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -237,6 +236,7 @@ func SendFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // SendHandler renders route POST "/bot/{botID}/send"
+// Vindo do formulário de testes
 func SendHandler(w http.ResponseWriter, r *http.Request) {
 	data := sendFormData{
 		PageTitle: "Send",
@@ -252,7 +252,7 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	recipient := r.Form.Get("recipient")
 	message := r.Form.Get("message")
 
-	messageID, err := models.SendMessage(bot.ID, recipient, message)
+	messageID, err := models.SendMessage(bot.ID, recipient, message, models.QPAttachment{})
 	if err != nil {
 		messageSendErrors.Inc()
 		data.ErrorMessage = err.Error()
@@ -286,27 +286,18 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postParams, err := parseJSONBody(r)
+	// Declare a new Person struct.
+	var request QPSendRequest
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		respondBadRequest(w, err)
+		respondServerError(w, err)
 		return
 	}
 
-	recipient, recipientOk := postParams["recipient"].(string)
-	if !recipientOk {
-		err = errors.New("'recipient' parameter is required")
-		respondBadRequest(w, err)
-		return
-	}
-
-	message, messageOk := postParams["message"].(string)
-	if !messageOk {
-		err = errors.New("'message' parameter is required")
-		respondBadRequest(w, err)
-		return
-	}
-
-	messageID, err := models.SendMessage(bot.ID, recipient, message)
+	messageID, err := models.SendMessage(bot.ID, request.Recipient, request.Message, request.Attachment)
 	if err != nil {
 		messageSendErrors.Inc()
 		respondServerError(w, err)
@@ -315,12 +306,10 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	messagesSent.Inc()
 
-	phoneNumber, _ := models.CleanPhoneNumber(bot.Number)
-
 	res := &sendResponse{
 		Result: &sentMessage{
-			Source:    phoneNumber + "@s.whatsapp.net",
-			Recipient: recipient,
+			Source:    bot.Number,
+			Recipient: request.Recipient,
 			MessageId: messageID,
 		},
 	}

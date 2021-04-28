@@ -14,6 +14,8 @@ type QPAttachment struct {
 	B64MediaKey string `json:"b64mediakey,omitempty"`
 	Length      int    `json:"length,omitempty"`
 	MIME        string `json:"mime,omitempty"`
+	Base64      string `json:"base64,omitempty"`
+	FileName    string `json:"filename,omitempty"`
 }
 
 // Traz o MediaType para download do whatsapp
