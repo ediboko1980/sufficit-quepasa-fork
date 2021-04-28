@@ -1,6 +1,7 @@
 module github.com/sufficit/sufficit-quepasa-fork/controllers
 
 require (
+	github.com/Rhymen/go-whatsapp v0.1.1-0.20200429202648-5e33cb4ac551
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dlclark/regexp2 v1.1.6 // indirect
 	github.com/go-chi/chi v4.1.1+incompatible
