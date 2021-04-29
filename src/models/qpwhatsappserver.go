@@ -10,10 +10,13 @@ import (
 )
 
 type QPWhatsAppServer struct {
-	Bot        *QPBot
-	Connection *wa.Conn
-	Handlers   *QPMessageHandler
-	Sync       *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
+	Bot            *QPBot
+	Connection     *wa.Conn
+	Handlers       *QPMessageHandler
+	Recipients     map[string]bool
+	Messages       map[string]QPMessage
+	SyncConnection *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
+	SyncMessages   *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 }
 
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
@@ -30,8 +33,8 @@ func (server *QPWhatsAppServer) Initialize() {
 		var waStatus WhatsAppConnectionsStatus
 		json.Unmarshal([]byte(waJsonResp), &waStatus)
 
-		if waStatus.Status != 200 {
-			// log.Printf("(%s) WhatsApp Server Connection Status: %s", server.Bot.Number, strconv.Itoa(waStatus.Status))
+		if waStatus.Status == 400 {
+			// log.Printf("(%s) WhatsApp Server Connection Status: %s :: %s", server.Bot.Number, waJsonResp, strconv.Itoa(waStatus.Status))
 			server.Start()
 		}
 
@@ -43,7 +46,7 @@ func (server *QPWhatsAppServer) Initialize() {
 func (server *QPWhatsAppServer) Start() (err error) {
 	log.Printf("(%s) Starting WhatsApp Server ...", server.Bot.Number)
 
-	server.Sync.Lock() // Travando
+	server.SyncConnection.Lock() // Travando
 	// ------
 
 	// Inicializando conexões e handlers
@@ -53,7 +56,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 	}
 
 	// ------
-	server.Sync.Unlock() // Destravando
+	server.SyncConnection.Unlock() // Destravando
 
 	return
 }
@@ -61,102 +64,119 @@ func (server *QPWhatsAppServer) Start() (err error) {
 func (server *QPWhatsAppServer) Restart() {
 	log.Printf("(%s) Restarting WhatsApp Server ...", server.Bot.Number)
 
-	server.Sync.Lock() // Travando
+	server.SyncConnection.Lock() // Travando
 	// ------
 
 	server.Connection.RemoveHandlers()
 	server.Connection.Disconnect()
 
 	// ------
-	server.Sync.Unlock() // Destravando
+	server.SyncConnection.Unlock() // Destravando
 
 	// Inicia novamente o servidor e os Handlers(alças)
 	server.Start()
 }
 
-func (server *QPWhatsAppServer) startHandlers() error {
+// Salva em cache e inicia gatilhos assíncronos
+func (server *QPWhatsAppServer) AppenMsgToCache(msg QPMessage) error {
+
+	server.SyncMessages.Lock() // Sinal vermelho para atividades simultâneas
+	// Apartir deste ponto só se executa um por vez
+
+	//server.Recipients[msg.ReplyTo.ID] = true
+	server.Messages[msg.ID] = msg
+
+	server.SyncMessages.Unlock() // Sinal verde !
+
+	// Executando WebHook de forma assincrona
+	go server.Bot.PostToWebHook(msg)
+
+	return nil
+}
+
+func (server *QPWhatsAppServer) GetMessages(timestamp uint64) (messages []QPMessage, err error) {
+	server.SyncMessages.Lock() // Sinal vermelho para atividades simultâneas
+	for _, item := range server.Messages {
+		if item.Timestamp >= timestamp {
+			messages = append(messages, item)
+		}
+	}
+	server.SyncMessages.Unlock() // Sinal verde !
+	return
+}
+
+func (server *QPWhatsAppServer) startHandlers() (err error) {
 	con, err := CreateConnection()
 	if err != nil {
 		return err
 	}
 
+	// Definindo conexão
 	server.Connection = con
 
-	userIDs := make(map[string]bool)       // cache dos users ids
-	messages := make(map[string]QPMessage) // cache das msgs
-	sync := &sync.Mutex{}
-	startupHandler := &QPMessageHandler{server.Bot, userIDs, messages, true, server, sync}
+	// Definindo handlers para mensagens assincronas
+	startupHandler := &QPMessageHandler{server.Bot, true, server}
 	con.AddHandler(startupHandler)
 
+	// Consultando banco de dados e buscando dados de alguma seção salva
 	session, err := ReadSession(server.Bot.ID)
 	if err != nil {
-		return err
+		return
 	}
 
+	// Agora sim, restaura a conexão com o whatsapp apartir de uma seção salva
 	session, err = con.RestoreWithSession(session)
 	if err != nil {
-		return err
+		return
 	}
 
+	// Aguarda 3 segundos
 	<-time.After(3 * time.Second)
 
-	if err := writeSession(server.Bot.ID, session); err != nil {
-		return err
+	// Atualiza o banco de dados com os novos dados
+	if err = writeSession(server.Bot.ID, session); err != nil {
+		return
 	}
 
 	con.RemoveHandlers()
 
 	log.Printf("(%s) Fetching initial messages", server.Bot.Number)
-	initialMessages, err := server.fetchMessages(con, *server.Bot, startupHandler.userIDs)
+	err = server.fetchMessages(con, *server.Bot, server.Recipients)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("(%s) Setting up long-running message handler", server.Bot.Number)
-	asyncMessageHandler := &QPMessageHandler{server.Bot, startupHandler.userIDs, initialMessages, false, server, sync}
+	asyncMessageHandler := &QPMessageHandler{server.Bot, true, server}
 	server.Handlers = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
 
-	return nil
+	return
 }
 
-func (server *QPWhatsAppServer) fetchMessages(con *wa.Conn, bot QPBot, userIDs map[string]bool) (map[string]QPMessage, error) {
-	messages := make(map[string]QPMessage)
-
-	for userID := range userIDs {
+func (server *QPWhatsAppServer) fetchMessages(con *wa.Conn, bot QPBot, recipients map[string]bool) (err error) {
+	for userID := range recipients {
 		if string(userID[0]) == "+" {
 			continue
 		}
-		userMessages, err := server.loadMessages(con, bot, userID, 50)
+
+		// Busca até 50 msg de cada conversa para colocar no cache
+		err = server.loadMessages(con, bot, userID, 50)
 		if err != nil {
-			return messages, err
-		}
-
-		for messageID, message := range userMessages {
-			//mutex.Lock()
-
-			messages[messageID] = message
-
-			//mutex.Unlock()
+			return
 		}
 	}
-
-	return messages, nil
+	return
 }
 
 // Carrega as msg do histórico
 // Chamado antes de ativar os handlers
-func (server *QPWhatsAppServer) loadMessages(con *wa.Conn, bot QPBot, userID string, count int) (map[string]QPMessage, error) {
-
-	userIDs := make(map[string]bool)
-	messages := make(map[string]QPMessage)
-	sync := &sync.Mutex{}
-	handler := &QPMessageHandler{server.Bot, userIDs, messages, true, server, sync}
-
+// Após carregar, salva no cache automaticamente
+func (server *QPWhatsAppServer) loadMessages(con *wa.Conn, bot QPBot, userID string, count int) (err error) {
+	handler := &QPMessageHandler{server.Bot, true, server}
 	if con != nil {
 		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
 		con.RemoveHandlers()
 	}
-
-	return messages, nil
+	return
 }

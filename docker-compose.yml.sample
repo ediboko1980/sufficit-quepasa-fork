@@ -10,7 +10,7 @@ services:
   quepasa:
     image: quepasa
     ports:
-      - "3000:3000"
+      - "31000:31000"
     environment:
       - APP_ENV=production
       - PGHOST=localhost

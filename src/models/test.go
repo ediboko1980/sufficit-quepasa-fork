@@ -200,17 +200,10 @@ func RetrieveMessages(botID string, timestamp string) (messages []QPMessage, err
 		return
 	}
 
-	handler := server.Handlers
-
-	for _, msg := range handler.Messages {
-		if msg.Timestamp >= searchTimestamp {
-			//mutex.Lock() // travando multi threading
-
-			// Incluindo mensagem na lista de retorno
-			messages = append(messages, msg)
-
-			//mutex.Unlock() // destravando multi threading
-		}
+	messages, err = server.GetMessages(searchTimestamp)
+	if err != nil {
+		err = fmt.Errorf("msgs not read yet, please wait")
+		return
 	}
 
 	//mutex.Lock() // travando multi threading

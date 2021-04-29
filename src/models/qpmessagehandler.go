@@ -5,18 +5,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
 
 type QPMessageHandler struct {
 	Bot         *QPBot
-	userIDs     map[string]bool
-	Messages    map[string]QPMessage
-	synchronous bool
+	Synchronous bool
 	Server      *QPWhatsAppServer
-	Sync        *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 }
 
 // Essencial
@@ -74,7 +70,7 @@ func (h *QPMessageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	message.FillImageAttachment(msg, h.Server.Connection)
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleLocationMessage(msg wa.LocationMessage) {
@@ -91,7 +87,7 @@ func (h *QPMessageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 	message.Text = "Localização recebida ... "
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
@@ -108,7 +104,7 @@ func (h *QPMessageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage)
 	message.Text = "Localização em tempo real recebida ... "
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
@@ -126,7 +122,7 @@ func (h *QPMessageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 	message.FillDocumentAttachment(msg, h.Server.Connection)
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleContactMessage(msg wa.ContactMessage) {
@@ -143,7 +139,7 @@ func (h *QPMessageHandler) HandleContactMessage(msg wa.ContactMessage) {
 	message.Text = "Contato VCARD recebido ... "
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleAudioMessage(msg wa.AudioMessage) {
@@ -161,7 +157,7 @@ func (h *QPMessageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 	message.FillAudioAttachment(msg, h.Server.Connection)
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
+	h.Server.AppenMsgToCache(message)
 }
 
 func (h *QPMessageHandler) HandleTextMessage(msg wa.TextMessage) {
@@ -178,29 +174,10 @@ func (h *QPMessageHandler) HandleTextMessage(msg wa.TextMessage) {
 	message.Text = msg.Text
 	//  <--
 
-	AppenMsgToCache(h, message, msg.Info.RemoteJid)
-}
-
-// Salva em cache e inicia gatilhos assíncronos
-func AppenMsgToCache(h *QPMessageHandler, msg QPMessage, RemoteJid string) error {
-
-	h.Sync.Lock() // Sinal vermelho para atividades simultâneas
-	// Apartir deste ponto só se executa um por vez
-
-	if h != nil {
-		h.userIDs[RemoteJid] = true
-		h.Messages[msg.ID] = msg
-	}
-
-	h.Sync.Unlock() // Sinal verde !
-
-	// Executando WebHook de forma assincrona
-	go h.Bot.PostToWebHook(msg)
-
-	return nil
+	h.Server.AppenMsgToCache(message)
 }
 
 // Não sei pra que é utilizado
 func (h *QPMessageHandler) ShouldCallSynchronously() bool {
-	return h.synchronous
+	return h.Synchronous
 }

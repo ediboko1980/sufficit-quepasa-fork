@@ -38,9 +38,12 @@ func (service *QPWhatsAppService) appendServers() error {
 
 		var handlers *QPMessageHandler
 		var server *QPWhatsAppServer
-		sync := &sync.Mutex{}
+		syncConnetion := &sync.Mutex{}
+		syncMessages := &sync.Mutex{}
+		recipients := make(map[string]bool)
+		messages := make(map[string]QPMessage)
 		waBot := &bot
-		server = &QPWhatsAppServer{waBot, connection, handlers, sync}
+		server = &QPWhatsAppServer{waBot, connection, handlers, recipients, messages, syncConnetion, syncMessages}
 
 		// Adiciona na lista de servidores
 		service.Sync.Lock()
