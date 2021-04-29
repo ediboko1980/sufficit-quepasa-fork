@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
@@ -110,8 +109,9 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 		return messageID, fmt.Errorf("incomplete recipient (@ .uuu) %s", recipient)
 	}
 
-	con, err := GetConnection(botID)
-	if err != nil {
+	server, ok := GetServer(botID)
+	if !ok {
+		err = fmt.Errorf("server not found or not ready")
 		return
 	}
 
@@ -148,7 +148,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Ptt:     ptt,
 					Content: reader,
 				}
-				messageID, err = sendMessage(con, msg)
+				messageID, err = server.SendMessage(msg)
 			}
 		case "image/png", "image/jpeg":
 			{
@@ -158,7 +158,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Type:    attachment.MIME,
 					Content: reader,
 				}
-				messageID, err = sendMessage(con, msg)
+				messageID, err = server.SendMessage(msg)
 			}
 		default:
 			{
@@ -169,7 +169,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Type:     attachment.MIME,
 					Content:  reader,
 				}
-				messageID, err = sendMessage(con, msg)
+				messageID, err = server.SendMessage(msg)
 			}
 		}
 
@@ -178,7 +178,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 			Info: info,
 			Text: text,
 		}
-		messageID, err = sendMessage(con, msg)
+		messageID, err = server.SendMessage(msg)
 	}
 
 	if err != nil {
@@ -186,16 +186,6 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 	}
 
 	return
-}
-
-var lockSending = &sync.Mutex{}
-
-// importante para não derrubar as conexões
-func sendMessage(con *wa.Conn, msg interface{}) (string, error) {
-	lockSending.Lock()
-	messageID, err := con.Send(msg)
-	lockSending.Unlock()
-	return messageID, err
 }
 
 // Retrieve messages from the controller, external

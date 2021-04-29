@@ -55,3 +55,8 @@ func (service *QPWhatsAppService) appendServers() error {
 
 	return nil
 }
+
+func GetServer(botID string) (server *QPWhatsAppServer, ok bool) {
+	server, ok = WhatsAppService.Servers[botID]
+	return
+}
