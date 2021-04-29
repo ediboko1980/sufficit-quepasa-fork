@@ -243,6 +243,7 @@ func (server *QPWhatsAppServer) loadMessages(con *wa.Conn, bot QPBot, userID str
 // importante para não derrubar as conexões (ainda não funcionando)
 func (server *QPWhatsAppServer) SendMessage(msg interface{}) (string, error) {
 	//server.SyncConnection.Lock()
+	log.Printf("(%s) Sending msg: %s", server.Bot.GetNumber(), msg)
 	messageID, err := server.Connection.Send(msg)
 	//server.SyncConnection.Unlock()
 	return messageID, err
