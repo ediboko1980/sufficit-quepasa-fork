@@ -6,20 +6,23 @@ Built on the library [go-whatsapp][1] by [Rhymen][2].
 
 **Implemented features:**
 
-* Register a number with WhatsApp
 * Verify a number with a QR code
 * Persistence of account data and keys
 * Exposes HTTP endpoints for:
   * sending messages
   * receiving messages
+  * download attachments
+  * set webhook for receiving messages 
 
 **WARNING: This application has not been audited. It should not be regarded as
 secure, use at your own risk.**
 
 **This is a third-party effort, and is NOT in any affiliated with [WhatsApp][0].**
 
-### Why?
-
+### Why ?
+ 
+Angry, Angry ... WhatsApp keeps canceling our number.  
+ 
 When you need to communicate over WhatsApp from a different service, for example,
 [a help desk](http://zammad.org/) or other web-app, QuePasa provides a simple HTTP
 API to do so.
@@ -28,6 +31,8 @@ QuePasa stores keys and WhatsApp account data in a postgres database. It does
 not come with HTTPS out of the box. Your QuePasa API tokens essentially give
 full access to your WhatsApp account (to the extent that QuePasa has
 implemented WhatsApp features). Use with caution.
+
+For HTTPS use Nginx.
 
 ## Usage
 
@@ -67,10 +72,10 @@ GET /bot/<TOKEN>/
 
 ```json
 {
-    "id": "129f1757-e706-452e-aa1c-4994a95e1092",
-    "number": "+15555555552",
+    "id": "5454544554343@c.us",
     "user_id": "845ae4d0-f2c3-5342-91a2-5b45cb8db57c",
     "token": "8129c0b4-0b96-4486-84fc-c3dd7b03f846",
+	"webhook" : "",
     "is_verified": true,
     "created_at": "2018-11-02T11:36:24.273Z",
     "updated_at": "2018-11-02T11:36:24.273Z"

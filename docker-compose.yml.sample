@@ -24,4 +24,4 @@ services:
       - SIGNING_SECRET_FILE=/secrets/signing_secret
       - METRICS_HOST=
       - METRICS_PORT=9392
-      - MIGRATIONS=false
+      - MIGRATIONS=true

@@ -114,6 +114,7 @@ func MigrateToLatest() error {
 
 	m, err := migrate.New(fullPath, connection)
 	if err != nil {
+		log.Printf("Migrating database error on: %s", fullPath)
 		return err
 	}
 
