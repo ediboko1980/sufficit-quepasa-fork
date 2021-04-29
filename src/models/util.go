@@ -87,7 +87,6 @@ func MigrateToLatest() error {
 
 	workDir, err := os.Getwd()
 	if err != nil {
-		log.Printf("Migrating database error on working dir: %s", workDir)
 		return err
 	}
 
@@ -102,7 +101,7 @@ func MigrateToLatest() error {
 	} else {
 		// linux ===================
 		migrationsDir := filepath.Join(workDir, "migrations")
-		fullPath = fmt.Sprintf("file://%s", migrationsDir)
+		fullPath = fmt.Sprintf("file://%s", strings.TrimLeft(migrationsDir, "/"))
 	}
 
 	host := os.Getenv("PGHOST")
@@ -115,7 +114,6 @@ func MigrateToLatest() error {
 
 	m, err := migrate.New(fullPath, connection)
 	if err != nil {
-		log.Printf("Migrating database error on: %s", fullPath)
 		return err
 	}
 
