@@ -37,8 +37,7 @@ func respondNotFound(w http.ResponseWriter, err error) {
 }
 
 func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
-	log.Println("(%s) Server error: %s", bot.Number, err)
-
+	log.Printf("(%s) Server error: %s", bot.Number, err)
 	respondError(w, err, http.StatusInternalServerError)
 }
 
