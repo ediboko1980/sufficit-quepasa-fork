@@ -16,6 +16,7 @@ type QPWhatsAppServer struct {
 	Sync       *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 }
 
+// Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
 func (server *QPWhatsAppServer) Initialize() {
 	log.Printf("(%s) Initializing WhatsApp Server ...", server.Bot.Number)
 
@@ -105,13 +106,13 @@ func (server *QPWhatsAppServer) startHandlers() error {
 
 	con.RemoveHandlers()
 
-	log.Printf("(%s) :: Fetching initial messages", server.Bot.ID)
+	log.Printf("(%s) Fetching initial messages", server.Bot.Number)
 	initialMessages, err := server.fetchMessages(con, *server.Bot, startupHandler.userIDs)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("(%s) :: Setting up long-running message handler", server.Bot.ID)
+	log.Printf("(%s) Setting up long-running message handler", server.Bot.Number)
 	asyncMessageHandler := &QPMessageHandler{server.Bot, startupHandler.userIDs, initialMessages, false, server, sync}
 	server.Handlers = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
