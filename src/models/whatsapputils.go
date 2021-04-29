@@ -3,19 +3,19 @@ package models
 import (
 	"encoding/base64"
 
-	wa "github.com/Rhymen/go-whatsapp"
+	"github.com/Rhymen/go-whatsapp"
 )
 
 // Cria uma mensagem no formato do QuePasa apartir de uma msg do WhatsApp
 // Preenche somente as propriedades padrões e comuns a todas as msgs
-func CreateQPMessage(Info wa.MessageInfo) (message QPMessage) {
+func CreateQPMessage(Info whatsapp.MessageInfo) (message QPMessage) {
 	message = QPMessage{}
 	message.ID = Info.Id
 	message.Timestamp = Info.Timestamp
 	return
 }
 
-func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
+func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) {
 
 	// Fui eu quem enviou a msg ?
 	message.FromMe = Info.FromMe
@@ -38,7 +38,7 @@ func (message *QPMessage) FillHeader(Info wa.MessageInfo, con *wa.Conn) {
 	}
 }
 
-func (message *QPMessage) FillAudioAttachment(msg wa.AudioMessage, con *wa.Conn) {
+func (message *QPMessage) FillAudioAttachment(msg whatsapp.AudioMessage, con *whatsapp.Conn) {
 	getKey := msg.Info.Source.Message.AudioMessage.MediaKey
 	getUrl := *msg.Info.Source.Message.AudioMessage.Url
 	getLength := *msg.Info.Source.Message.AudioMessage.FileLength
@@ -52,7 +52,7 @@ func (message *QPMessage) FillAudioAttachment(msg wa.AudioMessage, con *wa.Conn)
 	}
 }
 
-func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa.Conn) {
+func (message *QPMessage) FillDocumentAttachment(msg whatsapp.DocumentMessage, con *whatsapp.Conn) {
 	innerMSG := msg.Info.Source.Message.DocumentMessage
 	//filename := &innerMSG.FileName
 	message.Attachment = QPAttachment{
@@ -64,7 +64,7 @@ func (message *QPMessage) FillDocumentAttachment(msg wa.DocumentMessage, con *wa
 	}
 }
 
-func (message *QPMessage) FillImageAttachment(msg wa.ImageMessage, con *wa.Conn) {
+func (message *QPMessage) FillImageAttachment(msg whatsapp.ImageMessage, con *whatsapp.Conn) {
 	getKey := msg.Info.Source.Message.ImageMessage.MediaKey
 	getUrl := *msg.Info.Source.Message.ImageMessage.Url
 	getLength := *msg.Info.Source.Message.ImageMessage.FileLength
@@ -88,7 +88,7 @@ func getPhone(textPhone string) string {
 }
 
 // Retorna algum titulo válido apartir de um jid
-func getTitle(store *wa.Store, jid string) string {
+func getTitle(store *whatsapp.Store, jid string) string {
 	var result string
 	contact, ok := store.Contacts[jid]
 	if ok {
@@ -98,7 +98,7 @@ func getTitle(store *wa.Store, jid string) string {
 }
 
 // Retorna algum titulo válido apartir de um contato do whatsapp
-func getContactTitle(contact wa.Contact) string {
+func getContactTitle(contact whatsapp.Contact) string {
 	var result string
 	result = contact.Name
 	if len(result) == 0 {

@@ -38,14 +38,15 @@ func (service *QPWhatsAppService) appendServers() error {
 
 		var handlers QPMessageHandler
 		var server *QPWhatsAppServer
-		server = &QPWhatsAppServer{&bot, connection, &handlers}
+		sync := &sync.Mutex{}
+		server = &QPWhatsAppServer{&bot, connection, &handlers, sync}
 
 		// Adiciona na lista de servidores
 		service.Sync.Lock()
 		service.Servers[bot.ID] = server
 		service.Sync.Unlock()
 
-		go server.Start()
+		go server.Initialize()
 	}
 
 	return nil

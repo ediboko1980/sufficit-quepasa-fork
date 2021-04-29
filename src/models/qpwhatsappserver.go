@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"log"
 	"sync"
 	"time"
@@ -12,24 +13,61 @@ type QPWhatsAppServer struct {
 	Bot        *QPBot
 	Connection *wa.Conn
 	Handlers   *QPMessageHandler
+	Sync       *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
+}
+
+func (server *QPWhatsAppServer) Initialize() {
+	log.Printf("(%s) Initializing WhatsApp Server ...", server.Bot.Number)
+
+	for {
+		response, err := server.Connection.GetStatus(server.Bot.ID)
+		if err != nil {
+			log.Printf("(%s) Error on GetStatus, probably whatsapp is out of range, retrying soon ...", server.Bot.Number)
+		}
+
+		waJsonResp := <-response
+		var waStatus WhatsAppConnectionsStatus
+		json.Unmarshal([]byte(waJsonResp), &waStatus)
+
+		if waStatus.Status != 200 {
+			// log.Printf("(%s) WhatsApp Server Connection Status: %s", server.Bot.Number, strconv.Itoa(waStatus.Status))
+			server.Start()
+		}
+
+		// Aguardaremos 10 segundos e vamos tentar novamente
+		time.Sleep(10 * time.Second)
+	}
 }
 
 func (server *QPWhatsAppServer) Start() (err error) {
-	log.Println("Starting WhatsApp Server ...")
+	log.Printf("(%s) Starting WhatsApp Server ...", server.Bot.Number)
+
+	server.Sync.Lock() // Travando
+	// ------
 
 	// Inicializando conexões e handlers
 	err = server.startHandlers()
 	if err != nil {
-		log.Printf("SUFF ERROR :: Starting Handlers error ... %s :", err)
+		log.Printf("(%s) SUFF ERROR :: Starting Handlers error ... %s :", server.Bot.Number, err)
 	}
+
+	// ------
+	server.Sync.Unlock() // Destravando
+
 	return
 }
 
 func (server *QPWhatsAppServer) Restart() {
-	log.Println("Restarting WhatsApp Server ...")
+	log.Printf("(%s) Restarting WhatsApp Server ...", server.Bot.Number)
+
+	server.Sync.Lock() // Travando
+	// ------
 
 	server.Connection.RemoveHandlers()
 	server.Connection.Disconnect()
+
+	// ------
+	server.Sync.Unlock() // Destravando
 
 	// Inicia novamente o servidor e os Handlers(alças)
 	server.Start()

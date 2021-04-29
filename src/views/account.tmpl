@@ -16,7 +16,7 @@
           <th>Verified</th>
           <th>Token</th>
           <th>Actions</th>
-          <th>WebHook</th>
+          <th style="text-align: center;">WebHook</th>
         </tr>
         </thead>
         <tbody>
@@ -62,7 +62,13 @@
                 </p>
               </div>
             </td>
-            <td>{{ .WebHook }}</td>
+            <td style="text-align: center;">
+            {{ if .WebHook }}
+              <span class="icon has-text-success" title="{{ .WebHook }}"><i class="fas fa-check-square"></i> </span>
+              {{ else }}
+              <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i> </span>
+              {{ end }}
+            </td>
             </tr>
         {{ end }}
         </tbody>
