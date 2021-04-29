@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/Rhymen/go-whatsapp"
 )
@@ -15,26 +16,30 @@ func CreateQPMessage(Info whatsapp.MessageInfo) (message QPMessage) {
 	return
 }
 
-func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) {
+func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) error {
+	if con != nil {
+		// Fui eu quem enviou a msg ?
+		message.FromMe = Info.FromMe
 
-	// Fui eu quem enviou a msg ?
-	message.FromMe = Info.FromMe
+		// Controlador, whatsapp gerenciador
+		message.Controller.ID = con.Info.Wid
+		message.Controller.Phone = getPhone(con.Info.Wid)
+		message.Controller.Title = getTitle(con.Store, con.Info.Wid)
 
-	// Controlador, whatsapp gerenciador
-	message.Controller.ID = con.Info.Wid
-	message.Controller.Phone = getPhone(con.Info.Wid)
-	message.Controller.Title = getTitle(con.Store, con.Info.Wid)
+		// Endereço correto para onde deve ser devolvida a msg
+		message.ReplyTo.ID = Info.RemoteJid
+		message.ReplyTo.Phone = getPhone(Info.RemoteJid)
+		message.ReplyTo.Title = getTitle(con.Store, Info.RemoteJid)
 
-	// Endereço correto para onde deve ser devolvida a msg
-	message.ReplyTo.ID = Info.RemoteJid
-	message.ReplyTo.Phone = getPhone(Info.RemoteJid)
-	message.ReplyTo.Title = getTitle(con.Store, Info.RemoteJid)
-
-	// Pessoa que enviou a msg dentro de um grupo
-	if Info.Source.Participant != nil {
-		message.Participant.ID = *Info.Source.Participant
-		message.Participant.Phone = getPhone(*Info.Source.Participant)
-		message.Participant.Title = getTitle(con.Store, *Info.Source.Participant)
+		// Pessoa que enviou a msg dentro de um grupo
+		if Info.Source.Participant != nil {
+			message.Participant.ID = *Info.Source.Participant
+			message.Participant.Phone = getPhone(*Info.Source.Participant)
+			message.Participant.Title = getTitle(con.Store, *Info.Source.Participant)
+		}
+		return nil
+	} else {
+		return fmt.Errorf("nil connection")
 	}
 }
 

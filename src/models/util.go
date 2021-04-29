@@ -30,7 +30,7 @@ func GetDB() *sqlx.DB {
 	connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
 		host, database, port, user, password, ssl)
 	db, err := sqlx.Connect("postgres", connection)
-	db.DB.SetMaxIdleConns(200)
+	db.DB.SetMaxIdleConns(500)
 	db.DB.SetMaxOpenConns(1000)
 	db.DB.SetConnMaxLifetime(30 * time.Second)
 
