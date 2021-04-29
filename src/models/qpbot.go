@@ -61,9 +61,9 @@ func CreateBot(db *sqlx.DB, userID string, number string) (QPBot, error) {
 	token := uuid.New().String()
 	now := time.Now().Format(time.RFC3339)
 	query := `INSERT INTO bots
-    (id, number, is_verified, token, user_id, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	if _, err := db.Exec(query, botID, number, false, token, userID, now, now); err != nil {
+    (id, number, is_verified, token, user_id, created_at, updated_at, webhook)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	if _, err := db.Exec(query, botID, number, false, token, userID, now, now, ""); err != nil {
 		return bot, err
 	}
 

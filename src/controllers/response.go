@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 type errorResponse struct {
@@ -34,8 +36,8 @@ func respondNotFound(w http.ResponseWriter, err error) {
 	respondError(w, err, http.StatusNotFound)
 }
 
-func respondServerError(w http.ResponseWriter, err error) {
-	log.Println("Server error: ", err)
+func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
+	log.Println("(%s) Server error: %s", bot.Number, err)
 
 	respondError(w, err, http.StatusInternalServerError)
 }

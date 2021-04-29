@@ -10,7 +10,7 @@ import (
 )
 
 type QPWhatsAppServer struct {
-	Bot            *QPBot
+	Bot            QPBot
 	Connection     *wa.Conn
 	Handlers       *QPMessageHandler
 	Recipients     map[string]bool
@@ -115,7 +115,7 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 	server.Connection = con
 
 	// Definindo handlers para mensagens assincronas
-	startupHandler := &QPMessageHandler{server.Bot, true, server}
+	startupHandler := &QPMessageHandler{&server.Bot, true, server}
 	con.AddHandler(startupHandler)
 
 	// Consultando banco de dados e buscando dados de alguma seção salva
@@ -141,13 +141,13 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 	con.RemoveHandlers()
 
 	log.Printf("(%s) Fetching initial messages", server.Bot.Number)
-	err = server.fetchMessages(con, *server.Bot, server.Recipients)
+	err = server.fetchMessages(con, server.Bot, server.Recipients)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("(%s) Setting up long-running message handler", server.Bot.Number)
-	asyncMessageHandler := &QPMessageHandler{server.Bot, true, server}
+	asyncMessageHandler := &QPMessageHandler{&server.Bot, true, server}
 	server.Handlers = asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
 
@@ -173,7 +173,7 @@ func (server *QPWhatsAppServer) fetchMessages(con *wa.Conn, bot QPBot, recipient
 // Chamado antes de ativar os handlers
 // Após carregar, salva no cache automaticamente
 func (server *QPWhatsAppServer) loadMessages(con *wa.Conn, bot QPBot, userID string, count int) (err error) {
-	handler := &QPMessageHandler{server.Bot, true, server}
+	handler := &QPMessageHandler{&server.Bot, true, server}
 	if con != nil {
 		con.LoadFullChatHistory(userID, count, time.Millisecond*300, handler)
 		con.RemoveHandlers()

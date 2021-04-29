@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
@@ -19,21 +18,9 @@ type QPMessageHandler struct {
 // Unico item realmente necessario para o sistema do whatsapp funcionar
 func (h *QPMessageHandler) HandleError(publicError error) {
 	if e, ok := publicError.(*wa.ErrConnectionFailed); ok {
-		log.Printf("(%s) SUFF ERROR B :: Connection failed, underlying error: %v", h.Server.Bot.Number, e.Err)
-		//<-time.After(10 * time.Second)
-		//h.Server.Restart()
-	} else if strings.Contains(publicError.Error(), "received invalid data") {
-		return // ignorando erro conhecido
-	} else if strings.Contains(publicError.Error(), "tag 174") {
-		log.Printf("(%s) SUFF ERROR D :: Binary decode error, underlying error: %v", h.Server.Bot.Number, publicError)
-		//<-time.After(10 * time.Second)
-		//h.Server.Restart()
-	} else if strings.Contains(publicError.Error(), "code: 1000") {
-		log.Printf("(%s) SUFF ERROR H :: %v\n", h.Server.Bot.Number, publicError)
-		//<-time.After(10 * time.Second)
-		//h.Server.Restart()
+		log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.Number, e.Err)
 	} else {
-		log.Printf("SUFF ERROR E :: Message handler error: %v\n", publicError.Error())
+		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.Number, publicError)
 	}
 }
 

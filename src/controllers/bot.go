@@ -293,14 +293,14 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	// respond to the client with the error message and a 400 status code.
 	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 		return
 	}
 
 	messageID, err := models.SendMessage(bot.ID, request.Recipient, request.Message, request.Attachment)
 	if err != nil {
 		messageSendErrors.Inc()
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 		return
 	}
 
@@ -380,7 +380,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	messages, err := models.RetrieveMessages(bot.ID, timestamp)
 	if err != nil {
 		messageReceiveErrors.Inc()
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 		return
 	}
 
@@ -457,7 +457,7 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 	// respond to the client with the error message and a 400 status code.
 	err = json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 	}
 
 	log.Printf("UPDATING WEBHOOK :: %#v :: %s\n", bot.ID, p.Url)
@@ -473,7 +473,7 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 // AttachmentHandler renders route POST "/v1/bot/{token}/attachment"
 func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	_, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
@@ -486,12 +486,12 @@ func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 	// respond to the client with the error message and a 400 status code.
 	err = json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 	}
 
 	mediaKey, err := p.MediaKey()
 	if err != nil {
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 		return
 	}
 
@@ -499,7 +499,7 @@ func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// se for  "invalid media hmac" é bem provavel que seja de outra conexão
 		// só é possivel baixar pela url sendo da mesma conexão
-		respondServerError(w, err)
+		respondServerError(bot, w, err)
 		return
 	}
 
