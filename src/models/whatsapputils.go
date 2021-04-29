@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 
 	"github.com/Rhymen/go-whatsapp"
 )
@@ -16,31 +17,41 @@ func CreateQPMessage(Info whatsapp.MessageInfo) (message QPMessage) {
 	return
 }
 
-func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) error {
-	if con != nil {
-		// Fui eu quem enviou a msg ?
-		message.FromMe = Info.FromMe
+func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) (err error) {
 
-		// Controlador, whatsapp gerenciador
-		message.Controller.ID = con.Info.Wid
-		message.Controller.Phone = getPhone(con.Info.Wid)
-		message.Controller.Title = getTitle(con.Store, con.Info.Wid)
-
-		// Endereço correto para onde deve ser devolvida a msg
-		message.ReplyTo.ID = Info.RemoteJid
-		message.ReplyTo.Phone = getPhone(Info.RemoteJid)
-		message.ReplyTo.Title = getTitle(con.Store, Info.RemoteJid)
-
-		// Pessoa que enviou a msg dentro de um grupo
-		if Info.Source.Participant != nil {
-			message.Participant.ID = *Info.Source.Participant
-			message.Participant.Phone = getPhone(*Info.Source.Participant)
-			message.Participant.Title = getTitle(con.Store, *Info.Source.Participant)
-		}
-		return nil
-	} else {
-		return fmt.Errorf("nil connection")
+	if con == nil {
+		err = fmt.Errorf("nil connection")
+		log.Print(err)
+		return
 	}
+
+	if con.Info == nil {
+		err = fmt.Errorf("nil connection information")
+		log.Print(err)
+		return
+	}
+
+	// Fui eu quem enviou a msg ?
+	message.FromMe = Info.FromMe
+
+	// Controlador, whatsapp gerenciador
+	message.Controller.ID = con.Info.Wid
+	message.Controller.Phone = getPhone(con.Info.Wid)
+	message.Controller.Title = getTitle(con.Store, con.Info.Wid)
+
+	// Endereço correto para onde deve ser devolvida a msg
+	message.ReplyTo.ID = Info.RemoteJid
+	message.ReplyTo.Phone = getPhone(Info.RemoteJid)
+	message.ReplyTo.Title = getTitle(con.Store, Info.RemoteJid)
+
+	// Pessoa que enviou a msg dentro de um grupo
+	if Info.Source.Participant != nil {
+		message.Participant.ID = *Info.Source.Participant
+		message.Participant.Phone = getPhone(*Info.Source.Participant)
+		message.Participant.Title = getTitle(con.Store, *Info.Source.Participant)
+	}
+
+	return
 }
 
 func (message *QPMessage) FillAudioAttachment(msg whatsapp.AudioMessage, con *whatsapp.Conn) {
@@ -70,6 +81,12 @@ func (message *QPMessage) FillDocumentAttachment(msg whatsapp.DocumentMessage, c
 }
 
 func (message *QPMessage) FillImageAttachment(msg whatsapp.ImageMessage, con *whatsapp.Conn) {
+	if msg.Info.Source.Message.ImageMessage.Url == nil {
+		// Aconteceu na primeira vez, quando cadastrei o número de whatsapp errado
+		log.Println("erro on filling image attachement, url not avail")
+		return
+	}
+
 	getKey := msg.Info.Source.Message.ImageMessage.MediaKey
 	getUrl := *msg.Info.Source.Message.ImageMessage.Url
 	getLength := *msg.Info.Source.Message.ImageMessage.FileLength

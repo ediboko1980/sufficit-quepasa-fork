@@ -12,14 +12,14 @@ import (
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
-	"github.com/skip2/go-qrcode"
 )
 
 // Ler uma seção já logada e salva no banco de dados
 // Pronta para uso
-func ReadSession(botID string) (wa.Session, error) {
+// wid = uinque id do whatsapp, não id do bot
+func ReadSession(wid string) (wa.Session, error) {
 	var session wa.Session
-	store, err := GetStore(GetDB(), botID)
+	store, err := GetStore(GetDB(), wid)
 	if err != nil {
 		return session, err
 	}
@@ -34,33 +34,8 @@ func ReadSession(botID string) (wa.Session, error) {
 	return session, nil
 }
 
-func SignIn(botID string, out chan<- []byte) error {
-	con, err := CreateConnection()
-	if err != nil {
-		return err
-	}
-
-	qr := make(chan string)
-	go func() {
-		var png []byte
-		png, err := qrcode.Encode(<-qr, qrcode.Medium, 256)
-		if err != nil {
-			log.Printf("SUFF ERROR C :: %#v\n", err.Error())
-		}
-		encodedPNG := base64.StdEncoding.EncodeToString(png)
-		out <- []byte(encodedPNG)
-	}()
-
-	session, err := con.Login(qr)
-	if err != nil {
-		return err
-	}
-
-	return writeSession(botID, session)
-}
-
-func writeSession(botID string, session wa.Session) error {
-	_, err := GetOrCreateStore(GetDB(), botID)
+func WriteSession(wid string, session wa.Session) error {
+	_, err := GetOrCreateStore(GetDB(), wid)
 	if err != nil {
 		return err
 	}
@@ -71,7 +46,7 @@ func writeSession(botID string, session wa.Session) error {
 		return err
 	}
 
-	_, err = UpdateStore(GetDB(), botID, buff.Bytes())
+	_, err = UpdateStore(GetDB(), wid, buff.Bytes())
 	if err != nil {
 		return err
 	}
@@ -92,7 +67,7 @@ func CreateConnection() (*wa.Conn, error) {
 	return con, err
 }
 
-func SendMessage(botID string, recipient string, text string, attachment QPAttachment) (messageID string, err error) {
+func SendMessageFromBOT(botID string, recipient string, text string, attachment QPAttachment) (messageID string, err error) {
 	recipient = strings.TrimLeft(recipient, "+")
 
 	allowedSuffix := map[string]bool{

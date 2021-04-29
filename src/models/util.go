@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -65,7 +66,13 @@ func CleanPhoneNumber(number string) (string, error) {
 		return out, fmt.Errorf("this id is a group, cant be converted to phone number")
 	}
 
-	spacesRemoved := strings.Replace(number, " ", "", -1)
+	return GetPhoneByID(number)
+}
+
+// Usado também para identificar o número do bot
+// Meramente visual
+func GetPhoneByID(id string) (out string, err error) {
+	spacesRemoved := strings.Replace(id, " ", "", -1)
 	re, err := regexp.Compile(`\d*`)
 	matches := re.FindAllString(spacesRemoved, -1)
 	if len(matches) > 0 {
@@ -83,14 +90,19 @@ func MigrateToLatest() error {
 		return err
 	}
 
-	// windows ===================
-	//leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
-	//migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
-	//fullPath := fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+	var fullPath string
+	if runtime.GOOS == "windows" {
+		log.Println("Migrating database on Windows")
 
-	// linux ===================
-	migrationsDir := filepath.Join(workDir, "migrations")
-	fullPath := fmt.Sprintf("file://%s", migrationsDir)
+		// windows ===================
+		leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
+		migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
+		fullPath = fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+	} else {
+		// linux ===================
+		migrationsDir := filepath.Join(workDir, "migrations")
+		fullPath = fmt.Sprintf("file://%s", migrationsDir)
+	}
 
 	host := os.Getenv("PGHOST")
 	database := os.Getenv("PGDATABASE")

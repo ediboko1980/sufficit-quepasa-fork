@@ -40,61 +40,6 @@ var messageReceiveErrors = promauto.NewCounter(prometheus.CounterOpts{
 })
 
 //
-// Register
-//
-
-type registerFormData struct {
-	PageTitle    string
-	ErrorMessage string
-}
-
-func renderRegisterForm(w http.ResponseWriter, data registerFormData) {
-	templates := template.Must(template.ParseFiles(
-		"views/layouts/main.tmpl",
-		"views/bot/register.tmpl"))
-	templates.ExecuteTemplate(w, "main", data)
-}
-
-// RegisterFormHandler renders route GET "/bot/register"
-func RegisterFormHandler(w http.ResponseWriter, r *http.Request) {
-	data := registerFormData{
-		PageTitle: "Register",
-	}
-	renderRegisterForm(w, data)
-}
-
-// RegisterHandler renders route POST "/bot/register"
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := models.GetUser(r)
-	if err != nil {
-		redirectToLogin(w, r)
-		return
-	}
-
-	data := registerFormData{
-		PageTitle: "Register",
-	}
-
-	r.ParseForm()
-	number := r.Form.Get("number")
-
-	if number == "" {
-		data.ErrorMessage = "Number is required"
-		renderRegisterForm(w, data)
-		return
-	}
-
-	bot, err := models.CreateBot(models.GetDB(), user.ID, number)
-	if err != nil {
-		data.ErrorMessage = err.Error()
-		renderRegisterForm(w, data)
-		return
-	}
-
-	http.Redirect(w, r, "/bot/"+bot.ID+"/verify", http.StatusFound)
-}
-
-//
 // Cycle
 //
 
@@ -133,19 +78,12 @@ type verifyFormData struct {
 	Host         string
 }
 
-// VerifyFormHandler renders route GET "/bot/{botID}/verify"
+// VerifyFormHandler renders route GET "/bot/verify"
 func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
 	data := verifyFormData{
-		PageTitle: "Verify",
+		PageTitle: "Verify To Add or Update",
 		Protocol:  webSocketProtocol(),
 		Host:      r.Host,
-	}
-
-	bot, err := findBot(r)
-	if err != nil {
-		data.ErrorMessage = err.Error()
-	} else {
-		data.Bot = bot
 	}
 
 	templates := template.Must(template.ParseFiles(
@@ -157,10 +95,11 @@ func VerifyFormHandler(w http.ResponseWriter, r *http.Request) {
 
 var upgrader = websocket.Upgrader{}
 
-// VerifyHandler renders route GET "/bot/{botID}/verify/ws"
+// VerifyHandler renders route GET "/bot/verify/ws"
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
-	bot, err := findBot(r)
+	user, err := models.GetUser(r)
 	if err != nil {
+		redirectToLogin(w, r)
 		return
 	}
 
@@ -180,26 +119,33 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	if err = models.SignIn(bot.ID, out); err != nil {
-		log.Printf("Sign in error: %v", err)
+	// Exibindo código QR
+	bot, err := models.SignInWithQRCode(user, out)
+	if err != nil {
 		err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
+		// Se for timeout não me interessa e volta para tela de contas
 		if err != nil {
-			log.Println("Write message error: ", err)
+			log.Printf("error on read qr code: %s", err)
 		}
+
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	err = bot.MarkVerified(models.GetDB())
+	log.Printf("(%s) Verificação QRCode confirmada ...", bot.GetNumber())
+	err = bot.MarkVerified(models.GetDB(), true)
 	if err != nil {
 		log.Println(err)
 	}
 
-	//models.RestartServer()
+	go models.WhatsAppService.AppendNewServer(bot)
 
 	err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
 	if err != nil {
 		log.Println("Write message error: ", err)
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 //
@@ -252,7 +198,7 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	recipient := r.Form.Get("recipient")
 	message := r.Form.Get("message")
 
-	messageID, err := models.SendMessage(bot.ID, recipient, message, models.QPAttachment{})
+	messageID, err := models.SendMessageFromBOT(bot.ID, recipient, message, models.QPAttachment{})
 	if err != nil {
 		messageSendErrors.Inc()
 		data.ErrorMessage = err.Error()
@@ -297,7 +243,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageID, err := models.SendMessage(bot.ID, request.Recipient, request.Message, request.Attachment)
+	messageID, err := models.SendMessageFromBOT(bot.ID, request.Recipient, request.Message, request.Attachment)
 	if err != nil {
 		messageSendErrors.Inc()
 		respondServerError(bot, w, err)
@@ -308,7 +254,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := &sendResponse{
 		Result: &sentMessage{
-			Source:    bot.Number,
+			Source:    bot.GetNumber(),
 			Recipient: request.Recipient,
 			MessageId: messageID,
 		},
@@ -343,7 +289,7 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		data.ErrorMessage = err.Error()
 	} else {
-		data.Number = bot.Number
+		data.Number = bot.GetNumber()
 	}
 
 	queryValues := r.URL.Query()

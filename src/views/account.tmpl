@@ -3,7 +3,7 @@
   <h1 class="title is-1">QuePasa Bots</h1>
     <p class="subtitle">Welcome {{ .User.Email }}</p>
     <h2 class="title is-2">Your bots</h2>
-    <a class="button is-primary" href="/bot/register">Register Bot</a>
+    <a class="button is-primary" href="/bot/verify">Add or Update Bot</a>
     {{ if .ErrorMessage }}
     <div class="notification is-warning">
       {{ .ErrorMessage }}
@@ -22,13 +22,12 @@
         <tbody>
         {{ range .Bots }}
           <tr>
-            <th>{{ .Number }}</th>
+            <th>{{ .GetNumber }}</th>
             <td>
               {{ if .Verified }}
               <span class="icon has-text-success"><i class="fas fa-check-square"></i> </span> verified
               {{ else }}
               <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i></span>
-              <a href="/bot/{{ .ID }}/verify">verify now</a>
               {{ end }}
             </td>
             <td>

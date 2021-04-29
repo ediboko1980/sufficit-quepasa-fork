@@ -7,7 +7,7 @@
 
 <script>
   (function() {
-    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/{{ .Bot.ID }}/verify/ws");
+    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/verify/ws");
     ws.onmessage = function (event) {
       if (event.data === "Complete") {
         window.location.replace("/account");
@@ -21,8 +21,8 @@
     };
   })();
 </script>
-<label class="label">Scan this QR code for {{ .Bot.Number }} in the next 20 seconds:</label>
+<label class="label">Scan this QR code in the next 20 seconds:</label>
 <img id="qr-code" src="">
-<button class="button is-block is-large is-fullwidth" formaction="/bot/{{ .Bot.ID }}/verify">New code</button>
+<button class="button is-block is-large is-fullwidth" formaction="/bot/verify">New code</button>
 <a href="/account">Back</a>
 {{ end }}

@@ -14,58 +14,58 @@ type Store struct {
 	UpdatedAt string `db:"updated_at"`
 }
 
-func storeExists(db *sqlx.DB, botID string) (bool, error) {
+func storeExists(db *sqlx.DB, wid string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) FROM sessionstore WHERE bot_id = $1", botID)
+	err := db.Get(&count, "SELECT count(*) FROM sessionstore WHERE bot_id = $1", wid)
 	return count > 0, err
 }
 
-func GetOrCreateStore(db *sqlx.DB, botID string) (Store, error) {
+func GetOrCreateStore(db *sqlx.DB, wid string) (Store, error) {
 	var store Store
-	exists, err := storeExists(db, botID)
+	exists, err := storeExists(db, wid)
 	if err != nil {
 		return store, err
 	}
 
 	if exists {
-		store, err := GetStore(db, botID)
+		store, err := GetStore(db, wid)
 		if err != nil {
 			return store, err
 		}
 	} else {
-		store, err = CreateStore(db, botID)
+		store, err = CreateStore(db, wid)
 	}
 	return store, err
 }
 
-func CreateStore(db *sqlx.DB, botID string) (Store, error) {
+func CreateStore(db *sqlx.DB, wid string) (Store, error) {
 	var user Store
 	now := time.Now().Format(time.RFC3339)
 	query := `INSERT INTO sessionstore
     (bot_id, created_at, updated_at)
     VALUES ($1, $2, $3)`
-	if _, err := db.Exec(query, botID, now, now); err != nil {
+	if _, err := db.Exec(query, wid, now, now); err != nil {
 		return user, err
 	}
 
-	return GetStore(db, botID)
+	return GetStore(db, wid)
 }
 
-func GetStore(db *sqlx.DB, botID string) (Store, error) {
+func GetStore(db *sqlx.DB, wid string) (Store, error) {
 	var store Store
-	err := db.Get(&store, "SELECT * FROM sessionstore WHERE bot_id = $1", botID)
+	err := db.Get(&store, "SELECT * FROM sessionstore WHERE bot_id = $1", wid)
 	return store, err
 }
 
-func UpdateStore(db *sqlx.DB, botID string, data []byte) ([]byte, error) {
+func UpdateStore(db *sqlx.DB, wid string, data []byte) ([]byte, error) {
 	now := time.Now().Format(time.RFC3339)
 	query := "UPDATE sessionstore SET data = ($1::bytea), updated_at = $2 WHERE bot_id = $3"
-	_, err := db.Exec(query, data, now, botID)
+	_, err := db.Exec(query, data, now, wid)
 	return data, err
 }
 
-func DeleteStore(db *sqlx.DB, botID string) error {
+func DeleteStore(db *sqlx.DB, wid string) error {
 	query := "DELETE FROM sessionstore WHERE bot_id = $1"
-	_, err := db.Exec(query, botID)
+	_, err := db.Exec(query, wid)
 	return err
 }

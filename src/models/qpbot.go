@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -16,7 +15,6 @@ import (
 
 type QPBot struct {
 	ID        string `db:"id" json:"id"`
-	Number    string `db:"number" json:"number"`
 	Verified  bool   `db:"is_verified" json:"is_verified"`
 	Token     string `db:"token" json:"token"`
 	UserID    string `db:"user_id" json:"user_id"`
@@ -49,31 +47,41 @@ func FindBotForUser(db *sqlx.DB, userID string, ID string) (QPBot, error) {
 	return bot, err
 }
 
-func FindBotByNumber(db *sqlx.DB, number string) (QPBot, error) {
+func FindBotByID(db *sqlx.DB, botID string) (QPBot, error) {
 	var bot QPBot
-	err := db.Get(&bot, "SELECT * FROM bots WHERE number = $1", number)
+	err := db.Get(&bot, "SELECT * FROM bots WHERE id = $1", botID)
 	return bot, err
 }
 
-func CreateBot(db *sqlx.DB, userID string, number string) (QPBot, error) {
+func GetOrCreateBot(db *sqlx.DB, botID string, userID string) (bot QPBot, err error) {
+	bot, err = FindBotByID(db, botID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			bot, err = CreateBot(db, botID, userID)
+		}
+	}
+	return
+}
+
+// botID = Wid of whatsapp connection
+func CreateBot(db *sqlx.DB, botID string, userID string) (QPBot, error) {
 	var bot QPBot
-	botID := uuid.New().String()
 	token := uuid.New().String()
 	now := time.Now().Format(time.RFC3339)
 	query := `INSERT INTO bots
-    (id, number, is_verified, token, user_id, created_at, updated_at, webhook)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-	if _, err := db.Exec(query, botID, number, false, token, userID, now, now, ""); err != nil {
+    (id, is_verified, token, user_id, created_at, updated_at, webhook)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	if _, err := db.Exec(query, botID, false, token, userID, now, now, ""); err != nil {
 		return bot, err
 	}
 
 	return FindBotForUser(db, userID, botID)
 }
 
-func (bot *QPBot) MarkVerified(db *sqlx.DB) error {
+func (bot *QPBot) MarkVerified(db *sqlx.DB, ok bool) error {
 	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE bots SET is_verified = true, updated_at = $1 WHERE id = $2"
-	_, err := db.Exec(query, now, bot.ID)
+	query := "UPDATE bots SET is_verified = $3, updated_at = $1 WHERE id = $2"
+	_, err := db.Exec(query, now, bot.ID, ok)
 	return err
 }
 
@@ -91,12 +99,12 @@ func (bot *QPBot) Delete(db *sqlx.DB) error {
 	return err
 }
 
-func (bot *QPBot) FormattedNumber() string {
-	phoneNumber, err := CleanPhoneNumber(bot.Number)
+func (bot *QPBot) GetNumber() string {
+	phoneNumber, err := GetPhoneByID(bot.ID)
 	if err != nil {
-		log.Printf("SUFF ERROR G :: error on regex: %v\n", err)
+		return ""
 	}
-	return phoneNumber
+	return "+" + phoneNumber
 }
 
 func (bot *QPBot) WebHookUpdate(db *sqlx.DB) error {
@@ -107,7 +115,7 @@ func (bot *QPBot) WebHookUpdate(db *sqlx.DB) error {
 }
 
 func (bot *QPBot) WebHookSincronize(db *sqlx.DB) {
-	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE number = $1", bot.Number)
+	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE id = $1", bot.ID)
 }
 
 // Encaminha msg ao WebHook específicado
