@@ -87,6 +87,7 @@ func MigrateToLatest() error {
 
 	workDir, err := os.Getwd()
 	if err != nil {
+		log.Printf("Migrating database error on working dir: %s", workDir)
 		return err
 	}
 
@@ -120,6 +121,7 @@ func MigrateToLatest() error {
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
+		log.Printf("Migrating database error on: %s", fullPath)
 		return err
 	}
 
