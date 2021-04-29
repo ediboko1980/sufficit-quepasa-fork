@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -22,9 +23,13 @@ type QPWhatsAppServer struct {
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
 func (server *QPWhatsAppServer) Initialize() error {
 	log.Printf("(%s) Initializing WhatsApp Server ...", server.Bot.Number)
-
 	for {
-		response, err := server.Connection.GetStatus(server.Bot.ID)
+		connection := server.Connection
+		if connection == nil {
+			return fmt.Errorf("(%s) Nil connection", server.Bot.Number)
+		}
+
+		response, err := connection.GetStatus(server.Bot.ID)
 		if err != nil {
 			log.Printf("(%s) Error on GetStatus, probably whatsapp is out of range, retrying soon ...", server.Bot.Number)
 		}
