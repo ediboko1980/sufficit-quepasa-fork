@@ -20,7 +20,7 @@ import (
 type accountFormData struct {
 	PageTitle    string
 	ErrorMessage string
-	Bots         []models.Bot
+	Bots         []models.QPBot
 	User         models.User
 }
 

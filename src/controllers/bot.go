@@ -128,7 +128,7 @@ func CycleHandler(w http.ResponseWriter, r *http.Request) {
 type verifyFormData struct {
 	PageTitle    string
 	ErrorMessage string
-	Bot          models.Bot
+	Bot          models.QPBot
 	Protocol     string
 	Host         string
 }
@@ -194,7 +194,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	models.RestartServer()
+	//models.RestartServer()
 
 	err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
 	if err != nil {
@@ -210,7 +210,7 @@ type sendFormData struct {
 	PageTitle    string
 	MessageId    string
 	ErrorMessage string
-	Bot          models.Bot
+	Bot          models.QPBot
 }
 
 func renderSendForm(w http.ResponseWriter, data sendFormData) {
@@ -287,7 +287,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Declare a new Person struct.
-	var request QPSendRequest
+	var request models.QPSendRequest
 
 	// Try to decode the request body into the struct. If there is an error,
 	// respond to the client with the error message and a 400 status code.
@@ -323,7 +323,7 @@ func SendAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 type receiveResponse struct {
 	Messages []models.QPMessage `json:"messages"`
-	Bot      models.Bot         `json:"bot"`
+	Bot      models.QPBot       `json:"bot"`
 }
 
 type receiveFormData struct {
@@ -349,7 +349,7 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	timestamp := queryValues.Get("timestamp")
 
-	messages, err := models.ReceiveMessages(bot.ID, timestamp)
+	messages, err := models.RetrieveMessages(bot.ID, timestamp)
 	if err != nil {
 		messageReceiveErrors.Inc()
 		data.ErrorMessage = err.Error()
@@ -377,7 +377,7 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	timestamp := queryValues.Get("timestamp")
 
-	messages, err := models.ReceiveMessages(bot.ID, timestamp)
+	messages, err := models.RetrieveMessages(bot.ID, timestamp)
 	if err != nil {
 		messageReceiveErrors.Inc()
 		respondServerError(w, err)
@@ -512,8 +512,8 @@ func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 // Helpers
 //
 
-func findBot(r *http.Request) (models.Bot, error) {
-	var bot models.Bot
+func findBot(r *http.Request) (models.QPBot, error) {
+	var bot models.QPBot
 	user, err := models.GetUser(r)
 	if err != nil {
 		return bot, err

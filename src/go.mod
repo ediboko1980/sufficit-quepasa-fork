@@ -17,15 +17,13 @@ require (
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/prometheus/client_golang v1.6.0
-	github.com/sufficit/sufficit-quepasa-fork/controllers v0.0.0
-	github.com/sufficit/sufficit-quepasa-fork/models v0.0.0
 	golang.org/x/sys v0.0.0-20200513112337-417ce2331b5c // indirect
+	github.com/sufficit/sufficit-quepasa-fork/models v0.0.0
+	github.com/sufficit/sufficit-quepasa-fork/controllers v0.0.0
 )
 
+replace github.com/sufficit/sufficit-quepasa-fork/models => ./models
+replace github.com/sufficit/sufficit-quepasa-fork/controllers => ./controllers
 replace github.com/sufficit/sufficit-quepasa-fork => ./
-
-replace github.com/sufficit/sufficit-quepasa-fork/controllers v0.0.0 => ./controllers
-
-replace github.com/sufficit/sufficit-quepasa-fork/models v0.0.0 => ./models
 
 go 1.14

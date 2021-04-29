@@ -1,5 +1,3 @@
-module github.com/sufficit/sufficit-quepasa-fork/models
-
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
