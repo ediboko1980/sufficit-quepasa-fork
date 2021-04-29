@@ -1,8 +1,6 @@
 package models
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -21,31 +19,18 @@ type QPWhatsAppServer struct {
 }
 
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
-func (server *QPWhatsAppServer) Initialize() error {
+func (server *QPWhatsAppServer) Initialize() (err error) {
 	log.Printf("(%s) Initializing WhatsApp Server ...", server.Bot.Number)
 	for {
-		connection := server.Connection
-		if connection == nil {
-			return fmt.Errorf("(%s) Nil connection", server.Bot.Number)
-		}
-
-		response, err := connection.GetStatus(server.Bot.ID)
-		if err != nil {
-			log.Printf("(%s) Error on GetStatus, probably whatsapp is out of range, retrying soon ...", server.Bot.Number)
-		}
-
-		waJsonResp := <-response
-		var waStatus WhatsAppConnectionsStatus
-		json.Unmarshal([]byte(waJsonResp), &waStatus)
-
-		if waStatus.Status == 400 {
-			// log.Printf("(%s) WhatsApp Server Connection Status: %s :: %s", server.Bot.Number, waJsonResp, strconv.Itoa(waStatus.Status))
-			server.Start()
+		err = server.Start()
+		if err == nil {
+			break
 		}
 
 		// Aguardaremos 10 segundos e vamos tentar novamente
 		time.Sleep(10 * time.Second)
 	}
+	return nil
 }
 
 func (server *QPWhatsAppServer) Start() (err error) {
@@ -57,7 +42,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 	// Inicializando conexões e handlers
 	err = server.startHandlers()
 	if err != nil {
-		log.Printf("(%s) SUFF ERROR :: Starting Handlers error ... %s :", server.Bot.Number, err)
+		log.Printf("(%s) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.Number, err)
 	}
 
 	// ------
