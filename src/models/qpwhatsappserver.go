@@ -20,7 +20,7 @@ type QPWhatsAppServer struct {
 }
 
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
-func (server *QPWhatsAppServer) Initialize() {
+func (server *QPWhatsAppServer) Initialize() error {
 	log.Printf("(%s) Initializing WhatsApp Server ...", server.Bot.Number)
 
 	for {
