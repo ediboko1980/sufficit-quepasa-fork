@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	wa "github.com/Rhymen/go-whatsapp"
@@ -147,7 +148,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Ptt:     ptt,
 					Content: reader,
 				}
-				messageID, err = con.Send(msg)
+				messageID, err = sendMessage(con, msg)
 			}
 		case "image/png", "image/jpeg":
 			{
@@ -157,7 +158,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Type:    attachment.MIME,
 					Content: reader,
 				}
-				messageID, err = con.Send(msg)
+				messageID, err = sendMessage(con, msg)
 			}
 		default:
 			{
@@ -168,7 +169,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 					Type:     attachment.MIME,
 					Content:  reader,
 				}
-				messageID, err = con.Send(msg)
+				messageID, err = sendMessage(con, msg)
 			}
 		}
 
@@ -177,7 +178,7 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 			Info: info,
 			Text: text,
 		}
-		messageID, err = con.Send(msg)
+		messageID, err = sendMessage(con, msg)
 	}
 
 	if err != nil {
@@ -185,6 +186,16 @@ func SendMessage(botID string, recipient string, text string, attachment QPAttac
 	}
 
 	return
+}
+
+var lockSending = &sync.Mutex{}
+
+// importante para não derrubar as conexões
+func sendMessage(con *wa.Conn, msg interface{}) (string, error) {
+	lockSending.Lock()
+	messageID, err := con.Send(msg)
+	lockSending.Unlock()
+	return messageID, err
 }
 
 // Retrieve messages from the controller, external
