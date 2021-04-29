@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	wa "github.com/Rhymen/go-whatsapp"
 )
@@ -21,6 +22,11 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.Number, e.Err)
 	} else {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.Number, publicError)
+	}
+
+	if strings.Contains(publicError.Error(), "server closed connection") {
+		// Se houve desconexão, reseta
+		h.Server.Restart()
 	}
 }
 
