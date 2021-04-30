@@ -415,10 +415,17 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 		respondServerError(bot, w, err)
 	}
 
+	// Já tratei os parametros
 	log.Printf("UPDATING WEBHOOK :: %#v :: %s\n", bot.ID, p.Url)
 
+	server, ok := models.WhatsAppService.Servers[bot.ID]
+	if ok {
+		bot = server.Bot
+	}
+
 	bot.WebHook = p.Url
-	if err := bot.WebHookUpdate(models.GetDB()); err != nil {
+	// Atualizando banco de dados
+	if err := bot.WebHookUpdate(models.DBQuePasa.Connection); err != nil {
 		return
 	}
 

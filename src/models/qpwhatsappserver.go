@@ -68,6 +68,7 @@ func CreateWhatsAppServer(bot QPBot) QPWhatsAppServer {
 	recipients := make(map[string]bool)
 	messages := make(map[string]QPMessage)
 	status := "created"
+	//bot.WebHook = *&bot.WebHook
 	return QPWhatsAppServer{bot, connection, *handlers, recipients, messages, syncConnetion, syncMessages, &status}
 }
 
