@@ -17,6 +17,7 @@
           <th>Token</th>
           <th>Actions</th>
           <th style="text-align: center;">WebHook</th>
+          <th>State</th>
         </tr>
         </thead>
         <tbody>
@@ -68,7 +69,8 @@
               <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i> </span>
               {{ end }}
             </td>
-            </tr>
+            <td>{{ .GetStatus }}</td>
+            </tr>            
         {{ end }}
         </tbody>
     </table>

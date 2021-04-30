@@ -108,6 +108,14 @@ func (bot *QPBot) GetNumber() string {
 	return "+" + phoneNumber
 }
 
+func (bot *QPBot) GetStatus() string {
+	_, ok := WhatsAppService.Servers[bot.ID]
+	if !ok {
+		return "stoped"
+	}
+	return "running"
+}
+
 func (bot *QPBot) WebHookUpdate(db *sqlx.DB) error {
 	now := time.Now().Format(time.RFC3339)
 	query := "UPDATE bots SET webhook = $1, updated_at = $2 WHERE id = $3"
