@@ -353,7 +353,16 @@ func InfoAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondSuccess(w, bot)
+	var ep models.QPEndPoint
+	ep.ID = bot.ID
+	ep.Phone = bot.GetNumber()
+	if bot.Verified {
+		ep.Status = "verified"
+	} else {
+		ep.Status = "unverified"
+	}
+
+	respondSuccess(w, ep)
 }
 
 //

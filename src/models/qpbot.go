@@ -99,6 +99,7 @@ func (bot *QPBot) Delete(db *sqlx.DB) error {
 	return err
 }
 
+// Traduz o Wid para um número de telefone em formato E164
 func (bot *QPBot) GetNumber() string {
 	phoneNumber, err := GetPhoneByID(bot.ID)
 	if err != nil {
