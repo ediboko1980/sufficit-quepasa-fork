@@ -23,12 +23,6 @@ type QPBot struct {
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
-func FindAllBots(db *sqlx.DB) ([]QPBot, error) {
-	bots := []QPBot{}
-	err := db.Select(&bots, "SELECT * FROM bots")
-	return bots, err
-}
-
 func FindAllBotsForUser(db *sqlx.DB, userID string) ([]QPBot, error) {
 	bots := []QPBot{}
 	err := db.Select(&bots, "SELECT * FROM bots WHERE user_id = $1", userID)
@@ -109,10 +103,15 @@ func (bot *QPBot) GetNumber() string {
 }
 
 func (bot *QPBot) GetStatus() string {
-	_, ok := WhatsAppService.Servers[bot.ID]
+	server, ok := WhatsAppService.Servers[bot.ID]
 	if !ok {
-		return "stoped"
+		return "stopped"
 	}
+
+	if len(*server.Status) > 0 {
+		return *server.Status
+	}
+
 	return "running"
 }
 

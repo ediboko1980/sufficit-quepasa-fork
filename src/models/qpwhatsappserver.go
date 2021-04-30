@@ -19,6 +19,7 @@ type QPWhatsAppServer struct {
 	Messages       map[string]QPMessage
 	syncConnection *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 	syncMessages   *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
+	Status         *string
 }
 
 // Envia o QRCode para o usuário e aguarda pela resposta
@@ -65,7 +66,8 @@ func CreateWhatsAppServer(bot QPBot) QPWhatsAppServer {
 	syncMessages := &sync.Mutex{}
 	recipients := make(map[string]bool)
 	messages := make(map[string]QPMessage)
-	return QPWhatsAppServer{bot, connection, *handlers, recipients, messages, syncConnetion, syncMessages}
+	status := "created"
+	return QPWhatsAppServer{bot, connection, *handlers, recipients, messages, syncConnetion, syncMessages, &status}
 }
 
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
@@ -95,10 +97,14 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		if strings.Contains(err.Error(), "401") {
 			log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
 			err = server.Bot.MarkVerified(GetDB(), false)
+		} else if strings.Contains(err.Error(), "restore session connection timed out") {
+			log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
 		} else {
 			log.Printf("(%s) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
 	}
+
+	*server.Status = "ready"
 
 	// ------
 	server.syncConnection.Unlock() // Destravando
@@ -114,6 +120,7 @@ func (server *QPWhatsAppServer) Restart() {
 
 	server.Connection.RemoveHandlers()
 	server.Connection.Disconnect()
+	*server.Status = "disconnected"
 
 	// ------
 	server.syncConnection.Unlock() // Destravando
@@ -189,6 +196,9 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 		return
 	}
 
+	// Atualizando informação sobre o estado da conexão e do servidor
+	*server.Status = "connected"
+
 	// Aguarda 3 segundos
 	<-time.After(3 * time.Second)
 
@@ -199,6 +209,7 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 
 	con.RemoveHandlers()
 
+	*server.Status = "fetching"
 	log.Printf("(%s) Fetching initial messages", server.Bot.GetNumber())
 	err = server.fetchMessages(con, server.Bot, server.Recipients)
 	if err != nil {
@@ -209,7 +220,6 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 	asyncMessageHandler := &QPMessageHandler{&server.Bot, true, server}
 	server.Handlers = *asyncMessageHandler
 	con.AddHandler(asyncMessageHandler)
-
 	return
 }
 

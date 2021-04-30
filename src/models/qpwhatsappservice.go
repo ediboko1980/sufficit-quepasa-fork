@@ -49,7 +49,7 @@ func (service *QPWhatsAppService) AppendNewServer(bot QPBot) {
 
 // Função privada que irá iniciar todos os servidores apartir do banco de dados
 func (service *QPWhatsAppService) initService() error {
-	bots, err := FindAllBots(GetDB())
+	bots, err := DBQuePasa.FindAllBots()
 	if err != nil {
 		return err
 	}

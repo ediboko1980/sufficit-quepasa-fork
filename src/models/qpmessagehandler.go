@@ -21,11 +21,10 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 	if e, ok := publicError.(*wa.ErrConnectionFailed); ok {
 		log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.GetNumber(), e.Err)
 	} else if strings.Contains(publicError.Error(), "code: 1000") {
+		// Desconexão forçado é algum evento iniciado pelo whatsapp
 		log.Printf("(%s) Desconexão forçada pelo whatsapp, code: 1000", h.Server.Bot.GetNumber())
-		err := h.Bot.MarkVerified(GetDB(), false)
-		if err != nil {
-			log.Printf("(%s) Erro ao tentar marcar como não verificado: %s", h.Server.Bot.GetNumber(), err.Error())
-		}
+		// Se houve desconexão, reseta
+		h.Server.Restart()
 		return
 	} else {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.GetNumber(), publicError)
