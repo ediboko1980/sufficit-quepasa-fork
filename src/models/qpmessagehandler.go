@@ -70,11 +70,11 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 }
 
 func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
-	fmt.Println(msg)
+	log.Printf("BATTERY :: %#v\n", msg)
 }
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
-	fmt.Println(contact)
+	log.Printf("CONTACT :: %#v\n", contact)
 }
 
 func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
