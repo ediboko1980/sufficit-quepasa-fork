@@ -26,6 +26,12 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		// Se houve desconexão, reseta
 		h.Server.Restart()
 		return
+	} else if strings.Contains(publicError.Error(), "close 1006") {
+		// Desconexão forçado é algum evento iniciado pelo whatsapp
+		log.Printf("(%s) Desconexão por falha no websocket, code: 1006, iremos reiniciar automaticamente", h.Server.Bot.GetNumber())
+		// Se houve desconexão, reseta
+		h.Server.Restart()
+		return
 	} else if strings.Contains(publicError.Error(), "message type not implemented") {
 		// Ignorando, novas implementação com Handlers não criados ainda
 		return
