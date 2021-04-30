@@ -31,9 +31,17 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.GetNumber(), publicError)
 	}
 
+	// Tratando erros individualmente
+	if strings.Contains(publicError.Error(), "keepAlive failed") {
+		// Se houve desconexão, reseta
+		h.Server.Restart()
+		return
+	}
+
 	if strings.Contains(publicError.Error(), "server closed connection") {
 		// Se houve desconexão, reseta
 		h.Server.Restart()
+		return
 	}
 }
 
