@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	wa "github.com/Rhymen/go-whatsapp"
+	whatsapp "github.com/Rhymen/go-whatsapp"
 )
 
 type QPMessageHandler struct {
@@ -18,13 +18,16 @@ type QPMessageHandler struct {
 // Essencial
 // Unico item realmente necessario para o sistema do whatsapp funcionar
 func (h *QPMessageHandler) HandleError(publicError error) {
-	if e, ok := publicError.(*wa.ErrConnectionFailed); ok {
+	if e, ok := publicError.(*whatsapp.ErrConnectionFailed); ok {
 		log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.GetNumber(), e.Err)
 	} else if strings.Contains(publicError.Error(), "code: 1000") {
 		// Desconexão forçado é algum evento iniciado pelo whatsapp
 		log.Printf("(%s) Desconexão forçada pelo whatsapp, code: 1000", h.Server.Bot.GetNumber())
 		// Se houve desconexão, reseta
 		h.Server.Restart()
+		return
+	} else if strings.Contains(publicError.Error(), "message type not implemented") {
+		// Ignorando, novas implementação com Handlers não criados ainda
 		return
 	} else {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.GetNumber(), publicError)
@@ -66,7 +69,15 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 	}
 }
 
-func (h *QPMessageHandler) HandleInfoMessage(msg wa.MessageInfo) {
+func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
+	fmt.Println(msg)
+}
+
+func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
+	fmt.Println(contact)
+}
+
+func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		fmt.Println(err)
@@ -76,7 +87,7 @@ func (h *QPMessageHandler) HandleInfoMessage(msg wa.MessageInfo) {
 	log.Printf("INFO :: %#v\n", string(b))
 }
 
-func (h *QPMessageHandler) HandleImageMessage(msg wa.ImageMessage) {
+func (h *QPMessageHandler) HandleImageMessage(msg whatsapp.ImageMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: ImageMessage error on pre processing received message: %v", err)
@@ -94,7 +105,7 @@ func (h *QPMessageHandler) HandleImageMessage(msg wa.ImageMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleLocationMessage(msg wa.LocationMessage) {
+func (h *QPMessageHandler) HandleLocationMessage(msg whatsapp.LocationMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: LocationMessage error on pre processing received message: %v", err)
@@ -111,7 +122,7 @@ func (h *QPMessageHandler) HandleLocationMessage(msg wa.LocationMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage) {
+func (h *QPMessageHandler) HandleLiveLocationMessage(msg whatsapp.LiveLocationMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: LiveLocationMessage error on pre processing received message: %v", err)
@@ -128,7 +139,7 @@ func (h *QPMessageHandler) HandleLiveLocationMessage(msg wa.LiveLocationMessage)
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
+func (h *QPMessageHandler) HandleDocumentMessage(msg whatsapp.DocumentMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: DocumentMessage error on pre processing received message: %v", err)
@@ -146,7 +157,7 @@ func (h *QPMessageHandler) HandleDocumentMessage(msg wa.DocumentMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleContactMessage(msg wa.ContactMessage) {
+func (h *QPMessageHandler) HandleContactMessage(msg whatsapp.ContactMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: ContactMessage error on pre processing received message: %v", err)
@@ -163,7 +174,7 @@ func (h *QPMessageHandler) HandleContactMessage(msg wa.ContactMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleAudioMessage(msg wa.AudioMessage) {
+func (h *QPMessageHandler) HandleAudioMessage(msg whatsapp.AudioMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: AudioMessage error on pre processing received message: %v", err)
@@ -181,7 +192,7 @@ func (h *QPMessageHandler) HandleAudioMessage(msg wa.AudioMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-func (h *QPMessageHandler) HandleTextMessage(msg wa.TextMessage) {
+func (h *QPMessageHandler) HandleTextMessage(msg whatsapp.TextMessage) {
 	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
 	//if err != nil {
 	//	log.Printf("SUFF ERROR G :: TextMessage error on pre processing received message: %v", err)
