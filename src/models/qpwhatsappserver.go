@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/base64"
+	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -250,11 +251,19 @@ func (server *QPWhatsAppServer) loadMessages(con *wa.Conn, bot QPBot, userID str
 	return
 }
 
+func SendWhatsAppMessage(con *wa.Conn, msg interface{}) (msgid string, err error) {
+	msgid, err = con.Send(msg)
+	return
+}
+
 // importante para não derrubar as conexões (ainda não funcionando)
 func (server *QPWhatsAppServer) SendMessage(msg interface{}) (string, error) {
-	//server.SyncConnection.Lock()
-	log.Printf("(%s) Sending msg: %s", server.Bot.GetNumber(), msg)
-	messageID, err := server.Connection.Send(msg)
-	//server.SyncConnection.Unlock()
+
+	if *server.Status != "ready" {
+		return "", fmt.Errorf("server not ready, wait")
+	}
+
+	messageID, err := SendWhatsAppMessage(server.Connection, msg)
+
 	return messageID, err
 }

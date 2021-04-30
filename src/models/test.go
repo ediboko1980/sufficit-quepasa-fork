@@ -11,14 +11,14 @@ import (
 	"strings"
 	"time"
 
-	wa "github.com/Rhymen/go-whatsapp"
+	whatsapp "github.com/Rhymen/go-whatsapp"
 )
 
 // Ler uma seção já logada e salva no banco de dados
 // Pronta para uso
 // wid = uinque id do whatsapp, não id do bot
-func ReadSession(wid string) (wa.Session, error) {
-	var session wa.Session
+func ReadSession(wid string) (whatsapp.Session, error) {
+	var session whatsapp.Session
 	store, err := GetStore(GetDB(), wid)
 	if err != nil {
 		return session, err
@@ -34,7 +34,7 @@ func ReadSession(wid string) (wa.Session, error) {
 	return session, nil
 }
 
-func WriteSession(wid string, session wa.Session) error {
+func WriteSession(wid string, session whatsapp.Session) error {
 	_, err := GetOrCreateStore(GetDB(), wid)
 	if err != nil {
 		return err
@@ -55,8 +55,8 @@ func WriteSession(wid string, session wa.Session) error {
 }
 
 // Cria uma instancia básica de conexão com whatsapp
-func CreateConnection() (*wa.Conn, error) {
-	con, err := wa.NewConn(30 * time.Second)
+func CreateConnection() (*whatsapp.Conn, error) {
+	con, err := whatsapp.NewConn(30 * time.Second)
 	if err != nil {
 		return con, err
 	}
@@ -92,7 +92,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 	}
 
 	// Informações basicas para todo tipo de mensagens
-	info := wa.MessageInfo{
+	info := whatsapp.MessageInfo{
 		RemoteJid: recipient,
 	}
 
@@ -117,7 +117,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 		case "audio/ogg", "audio/mpeg":
 			{
 				ptt := attachment.MIME == "audio/ogg"
-				msg := wa.AudioMessage{
+				msg := whatsapp.AudioMessage{
 					Info:    info,
 					Length:  uint32(attachment.Length),
 					Type:    attachment.MIME,
@@ -128,7 +128,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 			}
 		case "image/png", "image/jpeg":
 			{
-				msg := wa.ImageMessage{
+				msg := whatsapp.ImageMessage{
 					Info:    info,
 					Caption: caption,
 					Type:    attachment.MIME,
@@ -138,7 +138,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 			}
 		default:
 			{
-				msg := wa.DocumentMessage{
+				msg := whatsapp.DocumentMessage{
 					Info:     info,
 					Title:    caption,
 					FileName: attachment.FileName,
@@ -150,7 +150,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 		}
 
 	} else if len(text) > 0 {
-		msg := wa.TextMessage{
+		msg := whatsapp.TextMessage{
 			Info: info,
 			Text: text,
 		}
@@ -187,16 +187,5 @@ func RetrieveMessages(botID string, timestamp string) (messages []QPMessage, err
 	sort.Sort(ByTimestamp(messages))
 	//mutex.Unlock() // destravando multi threading
 
-	return
-}
-
-func GetConnection(botID string) (con *wa.Conn, err error) {
-	server, ok := WhatsAppService.Servers[botID]
-	if !ok {
-		err = fmt.Errorf("handlers not read yet, please wait")
-		return
-	}
-
-	con = server.Connection
 	return
 }
