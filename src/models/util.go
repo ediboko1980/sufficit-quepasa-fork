@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,26 +89,43 @@ func GetPhoneByID(id string) (out string, err error) {
 }
 
 // MigrateToLatest updates the database to the latest schema
-func MigrateToLatest() error {
-	log.Println("Migrating database (if necessary)")
-
-	workDir, err := os.Getwd()
-	if err != nil {
-		return err
+func MigrateToLatest() (err error) {
+	strMigrations := os.Getenv("MIGRATIONS")
+	if len(strMigrations) == 0 {
+		return
 	}
 
 	var fullPath string
-	if runtime.GOOS == "windows" {
-		log.Println("Migrating database on Windows")
-
-		// windows ===================
-		leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
-		migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
-		fullPath = fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+	boolMigrations, err := strconv.ParseBool(strMigrations)
+	if err == nil {
+		// Caso false, migrações não habilitadas
+		// Retorna sem problemas
+		if !boolMigrations {
+			return
+		}
 	} else {
-		// linux ===================
-		migrationsDir := filepath.Join(workDir, "migrations")
-		fullPath = fmt.Sprintf("file://%s", strings.TrimLeft(migrationsDir, "/"))
+		fullPath = strMigrations
+	}
+
+	log.Println("Migrating database (if necessary)")
+	if boolMigrations {
+		workDir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		if runtime.GOOS == "windows" {
+			log.Println("Migrating database on Windows")
+
+			// windows ===================
+			leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
+			migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
+			fullPath = fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
+		} else {
+			// linux ===================
+			migrationsDir := filepath.Join(workDir, "migrations")
+			fullPath = fmt.Sprintf("file://%s", strings.TrimLeft(migrationsDir, "/"))
+		}
 	}
 
 	host := os.Getenv("PGHOST")
@@ -125,7 +143,6 @@ func MigrateToLatest() error {
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Printf("Migrating database error on: %s", fullPath)
 		return err
 	}
 

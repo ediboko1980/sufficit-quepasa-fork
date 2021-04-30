@@ -13,12 +13,11 @@ import (
 )
 
 func main() {
-	doMigrations, _ := models.GetEnvBool("MIGRATIONS")
-	if doMigrations {
-		err := models.MigrateToLatest()
-		if err != nil {
-			log.Fatalf("Database migration error: %s", err.Error())
-		}
+
+	// Verifica se é necessario realizar alguma migração de base de dados
+	err := models.MigrateToLatest()
+	if err != nil {
+		log.Fatalf("Database migration error: %s", err.Error())
 	}
 
 	// Inicializando serviço de controle do whatsapp
