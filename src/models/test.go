@@ -158,7 +158,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 	}
 
 	if err != nil {
-		log.Printf("(%s) recipient: %s :: error sending message, attachment: %s :: %s", botID, recipient, attachment.MIME, attachment.FileName)
+		log.Printf("(%s) recipient: %s :: error sending message, attachment: %s :: %s", server.Bot.GetNumber(), recipient, attachment.MIME, attachment.FileName)
 	}
 
 	return
