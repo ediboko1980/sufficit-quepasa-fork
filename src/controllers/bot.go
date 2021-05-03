@@ -425,7 +425,7 @@ func WebHookHandler(w http.ResponseWriter, r *http.Request) {
 
 	bot.WebHook = p.Url
 	// Atualizando banco de dados
-	if err := bot.WebHookUpdate(models.DBQuePasa.Connection); err != nil {
+	if err := bot.WebHookUpdate(models.GetDB()); err != nil {
 		return
 	}
 

@@ -14,8 +14,6 @@ import (
 
 func main() {
 
-	models.QPDataBaseInit()
-
 	// Verifica se é necessario realizar alguma migração de base de dados
 	err := models.MigrateToLatest()
 	if err != nil {

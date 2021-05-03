@@ -88,6 +88,7 @@ func (server *QPWhatsAppServer) Initialize() (err error) {
 }
 
 func (server *QPWhatsAppServer) Start() (err error) {
+	*server.Status = "starting"
 	log.Printf("(%s) Starting WhatsApp Server ...", server.Bot.GetNumber())
 
 	server.syncConnection.Lock() // Travando
@@ -96,6 +97,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 	// Inicializando conexões e handlers
 	err = server.startHandlers()
 	if err != nil {
+		*server.Status = "fail"
 		if strings.Contains(err.Error(), "401") {
 			log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
 			err = server.Bot.MarkVerified(GetDB(), false)
@@ -104,9 +106,9 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		} else {
 			log.Printf("(%s) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
+	} else {
+		*server.Status = "ready"
 	}
-
-	*server.Status = "ready"
 
 	// ------
 	server.syncConnection.Unlock() // Destravando
@@ -115,20 +117,23 @@ func (server *QPWhatsAppServer) Start() (err error) {
 }
 
 func (server *QPWhatsAppServer) Restart() {
-	log.Printf("(%s) Restarting WhatsApp Server ...", server.Bot.GetNumber())
+	// Somente executa caso não esteja em estado de processo de conexão
+	// Evita chamadas simultâneas desnecessárias
+	if !strings.Contains(*server.Status, "starting") {
+		*server.Status = "restarting"
+		log.Printf("(%s) Restarting WhatsApp Server ...", server.Bot.GetNumber())
 
-	server.syncConnection.Lock() // Travando
-	// ------
+		server.Connection.RemoveHandlers()
+		server.Connection.Disconnect()
+		*server.Status = "disconnected"
 
-	server.Connection.RemoveHandlers()
-	server.Connection.Disconnect()
-	*server.Status = "disconnected"
-
-	// ------
-	server.syncConnection.Unlock() // Destravando
-
-	// Inicia novamente o servidor e os Handlers(alças)
-	server.Start()
+		// Inicia novamente o servidor e os Handlers(alças)
+		err := server.Initialize()
+		if err != nil {
+			*server.Status = "critical"
+			log.Printf("(%s) Critical error on WhatsApp Server: %s", server.Bot.GetNumber(), err.Error())
+		}
+	}
 }
 
 // Somente usar em caso de não ser permitida a reconxão automática

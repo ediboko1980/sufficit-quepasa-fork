@@ -24,13 +24,13 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		// Desconexão forçado é algum evento iniciado pelo whatsapp
 		log.Printf("(%s) Desconexão forçada pelo whatsapp, code: 1000", h.Server.Bot.GetNumber())
 		// Se houve desconexão, reseta
-		h.Server.Restart()
+		go h.Server.Restart()
 		return
 	} else if strings.Contains(publicError.Error(), "close 1006") {
 		// Desconexão forçado é algum evento iniciado pelo whatsapp
 		log.Printf("(%s) Desconexão por falha no websocket, code: 1006, iremos reiniciar automaticamente", h.Server.Bot.GetNumber())
 		// Se houve desconexão, reseta
-		h.Server.Restart()
+		go h.Server.Restart()
 		return
 	} else if strings.Contains(publicError.Error(), "message type not implemented") {
 		// Ignorando, novas implementação com Handlers não criados ainda
@@ -42,13 +42,13 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 	// Tratando erros individualmente
 	if strings.Contains(publicError.Error(), "keepAlive failed") {
 		// Se houve desconexão, reseta
-		h.Server.Restart()
+		go h.Server.Restart()
 		return
 	}
 
 	if strings.Contains(publicError.Error(), "server closed connection") {
 		// Se houve desconexão, reseta
-		h.Server.Restart()
+		go h.Server.Restart()
 		return
 	}
 }
