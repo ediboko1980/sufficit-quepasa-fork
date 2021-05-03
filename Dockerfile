@@ -27,6 +27,6 @@ COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
 COPY --from=builder /build/migrations ./migrations
 COPY docker-entrypoint.sh /usr/local/bin/
-EXPOSE 3000
+EXPOSE 31000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["/app/quepasa"]
