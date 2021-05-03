@@ -27,6 +27,8 @@ COPY --from=builder /build/views ./views
 COPY --from=builder /build/assets ./assets
 COPY --from=builder /build/migrations ./migrations
 COPY docker-entrypoint.sh /usr/local/bin/
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 EXPOSE 31000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["/app/quepasa"]

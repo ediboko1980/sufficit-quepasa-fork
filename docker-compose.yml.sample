@@ -25,7 +25,4 @@ services:
       - METRICS_HOST=
       - METRICS_PORT=9392
       - MIGRATIONS=true
-	  
-volumes:
-  - "/etc/timezone:/etc/timezone:ro"
-  - "/etc/localtime:/etc/localtime:ro"
+	  - TZ=America/Sao_Paulo
