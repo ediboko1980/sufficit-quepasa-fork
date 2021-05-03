@@ -19,25 +19,25 @@ func respondSuccess(w http.ResponseWriter, res interface{}) {
 }
 
 func respondBadRequest(w http.ResponseWriter, err error) {
-	log.Println("Bad request: ", err)
+	log.Println("!Request Bad Format: ", err)
 
 	respondError(w, err, http.StatusBadRequest)
 }
 
 func respondUnauthorized(w http.ResponseWriter, err error) {
-	log.Println("Unauthorized: ", err)
+	log.Println("!Request Unauthorized: ", err)
 
 	respondError(w, err, http.StatusUnauthorized)
 }
 
 func respondNotFound(w http.ResponseWriter, err error) {
-	log.Println("Not found: ", err)
+	log.Println("!Request Not found: ", err)
 
 	respondError(w, err, http.StatusNotFound)
 }
 
 func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
-	log.Printf("(%s) Server error: %s", bot.GetNumber(), err)
+	log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
 	respondError(w, err, http.StatusInternalServerError)
 }
 
