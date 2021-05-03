@@ -25,4 +25,3 @@ services:
       - METRICS_HOST=
       - METRICS_PORT=9392
       - MIGRATIONS=true
-	  - TZ=America/Sao_Paulo
