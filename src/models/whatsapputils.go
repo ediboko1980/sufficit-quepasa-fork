@@ -75,8 +75,8 @@ func (message *QPMessage) FillDocumentAttachment(msg whatsapp.DocumentMessage, c
 		B64MediaKey: base64.StdEncoding.EncodeToString(innerMSG.MediaKey),
 		Url:         *innerMSG.Url,
 		Length:      int(*innerMSG.FileLength),
-		MIME:        *innerMSG.Mimetype,
-		//FileName:    &filename,
+		MIME:        msg.Type,
+		FileName:    msg.FileName,
 	}
 }
 
