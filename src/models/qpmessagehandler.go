@@ -156,17 +156,13 @@ func (h *QPMessageHandler) HandleLiveLocationMessage(msg whatsapp.LiveLocationMe
 }
 
 func (h *QPMessageHandler) HandleDocumentMessage(msg whatsapp.DocumentMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: DocumentMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
 	//  --> Personalizado para esta seção
-	message.Text = "Documento recebido: " + msg.Type + " :: " + msg.FileName
+	innerMSG := msg.Info.Source.Message.DocumentMessage
+	message.Text = "Documento recebido: " + msg.Type + " :: " + *innerMSG.Mimetype + " :: " + msg.FileName
+
 	message.FillDocumentAttachment(msg, h.Server.Connection)
 	//  <--
 
