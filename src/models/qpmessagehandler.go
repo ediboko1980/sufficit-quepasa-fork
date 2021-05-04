@@ -17,9 +17,19 @@ type QPMessageHandler struct {
 
 // Essencial
 // Unico item realmente necessario para o sistema do whatsapp funcionar
+// Trata qualquer erro que influêncie no recebimento de msgs
 func (h *QPMessageHandler) HandleError(publicError error) {
+
 	if e, ok := publicError.(*whatsapp.ErrConnectionFailed); ok {
-		log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.GetNumber(), e.Err)
+		// Erros comuns de desconexão por qualquer motivo aleatório
+		if strings.Contains(e.Err.Error(), "close 1006") {
+			// 1006 falha no websocket, informações inválidas, provavelmente baixa qualidade de internet no celular
+			log.Printf("(%s) websocket corrupted, should restart ...", h.Server.Bot.GetNumber())
+			go h.Server.Restart()
+		} else {
+			log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.GetNumber(), e.Err)
+		}
+		return
 	} else if strings.Contains(publicError.Error(), "code: 1000") {
 		// Desconexão forçado é algum evento iniciado pelo whatsapp
 		log.Printf("(%s) Desconexão forçada pelo whatsapp, code: 1000", h.Server.Bot.GetNumber())
