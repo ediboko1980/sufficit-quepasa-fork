@@ -68,7 +68,9 @@ func CreateConnection() (*whatsapp.Conn, error) {
 }
 
 func SendMessageFromBOT(botID string, recipient string, text string, attachment QPAttachment) (messageID string, err error) {
-	//log.Printf("(%s) Sending msg from bot :: %s :: %s", botID, recipient, text)
+	if(ENV.IsDevelopment()){
+		log.Printf("(%s) Sending msg from bot :: %s :: %s", botID, recipient, text)
+	}
 	recipient = strings.TrimLeft(recipient, "+")
 
 	allowedSuffix := map[string]bool{
