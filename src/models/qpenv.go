@@ -1,8 +1,10 @@
 package models
 
-var ENV struct{}
+type Environment struct{}
 
-func (_ ENV) IsDevelopment() bool {
+var ENV Environment
+
+func (_ *Environment) IsDevelopment() bool {
 	environment, _ := getenvStr("APP_ENV")
 	if environment == "development" {
 		return true
