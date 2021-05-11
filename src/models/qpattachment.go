@@ -21,6 +21,10 @@ type QPAttachment struct {
 // Traz o MediaType para download do whatsapp
 func (m QPAttachment) WAMediaType() wa.MediaType {
 
+	if strings.Contains(m.MIME, "document") {
+		return wa.MediaDocument
+	}
+
 	// apaga informações após o ;
 	// fica somente o mime mesmo
 	mimeOnly := strings.Split(m.MIME, ";")
