@@ -75,8 +75,12 @@ func (message *QPMessage) FillDocumentAttachment(msg whatsapp.DocumentMessage, c
 		B64MediaKey: base64.StdEncoding.EncodeToString(innerMSG.MediaKey),
 		Url:         *innerMSG.Url,
 		Length:      int(*innerMSG.FileLength),
-		MIME:        msg.Type + "; document",
-		FileName:    msg.FileName,
+
+		// Adicionando document no final do mime para saber que foi enviado como documento pelo whatsapp
+		// Acontece de enviarem imagens como documento e não como imagens
+		// Essa informação adicional é importante para realizar o download da media depois
+		MIME:     msg.Type + "; document",
+		FileName: msg.FileName,
 	}
 }
 
