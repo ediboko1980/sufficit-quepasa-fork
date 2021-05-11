@@ -36,6 +36,11 @@ func respondNotFound(w http.ResponseWriter, err error) {
 	respondError(w, err, http.StatusNotFound)
 }
 
+/// Usado para avisar que o bot ainda não esta pronto
+func respondNotReady(w http.ResponseWriter, err error) {
+	respondError(w, err, http.StatusServiceUnavailable)
+}
+
 func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
 	log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
 	respondError(w, err, http.StatusInternalServerError)

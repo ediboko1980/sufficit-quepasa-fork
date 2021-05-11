@@ -292,6 +292,12 @@ func ReceiveFormHandler(w http.ResponseWriter, r *http.Request) {
 		data.Number = bot.GetNumber()
 	}
 
+	// Evitando tentativa de download de anexos sem o bot estar devidamente sincronizado
+	if bot.GetStatus() != "ready" {
+		respondNotReady(w, fmt.Errorf("bot not ready yet ! try later."))
+		return
+	}
+
 	queryValues := r.URL.Query()
 	timestamp := queryValues.Get("timestamp")
 
@@ -317,6 +323,12 @@ func ReceiveAPIHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		return
+	}
+
+	// Evitando tentativa de download de anexos sem o bot estar devidamente sincronizado
+	if bot.GetStatus() != "ready" {
+		respondNotReady(w, fmt.Errorf("bot not ready yet ! try later."))
 		return
 	}
 
@@ -440,6 +452,12 @@ func AttachmentHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		return
+	}
+
+	// Evitando tentativa de download de anexos sem o bot estar devidamente sincronizado
+	if bot.GetStatus() != "ready" {
+		respondNotReady(w, fmt.Errorf("bot not ready yet ! try later."))
 		return
 	}
 
