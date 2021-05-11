@@ -21,6 +21,7 @@ type QPWhatsAppServer struct {
 	syncConnection *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 	syncMessages   *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 	Status         *string
+	Battery        *WhatsAppBateryStatus
 }
 
 // Envia o QRCode para o usuário e aguarda pela resposta
@@ -68,8 +69,8 @@ func CreateWhatsAppServer(bot QPBot) QPWhatsAppServer {
 	recipients := make(map[string]bool)
 	messages := make(map[string]QPMessage)
 	status := "created"
-	//bot.WebHook = *&bot.WebHook
-	return QPWhatsAppServer{bot, connection, *handlers, recipients, messages, syncConnetion, syncMessages, &status}
+	batery := WhatsAppBateryStatus{}
+	return QPWhatsAppServer{bot, connection, *handlers, recipients, messages, syncConnetion, syncMessages, &status, &batery}
 }
 
 // Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos

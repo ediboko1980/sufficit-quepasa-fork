@@ -1,5 +1,5 @@
 package models
 
-type WhatsAppConnectionsStatus struct {
+type WhatsAppConnectionStatus struct {
 	Status int `json:"status"`
 }

@@ -17,6 +17,7 @@
           <th>Token</th>
           <th>Actions</th>
           <th style="text-align: center;">WebHook</th>
+          <th style="text-align: center;">Battery</th>
           <th>State</th>
         </tr>
         </thead>
@@ -68,6 +69,16 @@
               {{ else }}
               <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i> </span>
               {{ end }}
+            </td>
+            <td>
+              {{ if .GetBatteryInfo.Plugged  }}
+                <span class="icon charging-station" title="charging"><i class="fas fa-charging-station"></i> </span>              
+              {{ end }}
+              {{ if .GetBatteryInfo.Powersave  }}
+                <span class="icon has-text-danger" title="power save mode !"><i class="fas fa-battery-empty"></i> </span>              
+              {{ end }}
+              <span class="icon" title="{{ .GetBatteryInfo.Percentage }} %"><i class="fas fa-info-circle"></i> </span> 
+              <span class="icon" title="Last update: {{ .GetBatteryInfo.Timestamp }}"><i class="fas fa-clock"></i> </span>
             </td>
             <td>{{ .GetStatus }}</td>
             </tr>            

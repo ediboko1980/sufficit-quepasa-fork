@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	whatsapp "github.com/Rhymen/go-whatsapp"
 )
@@ -85,8 +86,12 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 	}
 }
 
+/// Atualizando informações sobre a bateria
 func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
-	log.Printf("BATTERY :: %#v\n", msg)
+	h.Server.Battery.Timestamp = time.Now()
+	h.Server.Battery.Plugged = msg.Plugged
+	h.Server.Battery.Percentage = msg.Percentage
+	h.Server.Battery.Powersave = msg.Powersave
 }
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
