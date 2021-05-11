@@ -68,7 +68,6 @@ func CreateConnection() (*whatsapp.Conn, error) {
 }
 
 func SendMessageFromBOT(botID string, recipient string, text string, attachment QPAttachment) (messageID string, err error) {
-	//log.Printf("(%s) Sending msg from bot :: %s :: %s", botID, recipient, text)
 	recipient = strings.TrimLeft(recipient, "+")
 
 	allowedSuffix := map[string]bool{
@@ -94,6 +93,10 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 	// Informações basicas para todo tipo de mensagens
 	info := whatsapp.MessageInfo{
 		RemoteJid: recipient,
+	}
+
+	if ENV.IsDevelopment() {
+		log.Printf("(%s)(DEV) Sending msg from bot :: %s :: %s", server.Bot.GetNumber(), recipient, text)
 	}
 
 	// log.Printf("sending message from bot: %s :: to recipient: %s", botID, recipient)
