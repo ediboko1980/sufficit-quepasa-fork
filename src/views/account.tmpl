@@ -71,14 +71,14 @@
               {{ end }}
             </td>
             <td>
+              <span>{{ .GetBatteryInfo.Percentage }} % </span>
+              <span class="icon" title="Last update: {{ .GetBatteryInfo.Timestamp }}"><i class="fas fa-clock"></i> </span>
               {{ if .GetBatteryInfo.Plugged  }}
                 <span class="icon charging-station" title="charging"><i class="fas fa-charging-station"></i> </span>              
               {{ end }}
               {{ if .GetBatteryInfo.Powersave  }}
                 <span class="icon has-text-danger" title="power save mode !"><i class="fas fa-battery-empty"></i> </span>              
-              {{ end }}
-              <span class="icon" title="{{ .GetBatteryInfo.Percentage }} %"><i class="fas fa-info-circle"></i> </span> 
-              <span class="icon" title="Last update: {{ .GetBatteryInfo.Timestamp }}"><i class="fas fa-clock"></i> </span>
+              {{ end }}              
             </td>
             <td>{{ .GetStatus }}</td>
             </tr>            
