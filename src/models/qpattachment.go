@@ -31,7 +31,7 @@ func (m QPAttachment) WAMediaType() wa.MediaType {
 	switch mimeOnly[0] {
 	case "image/jpeg":
 		return wa.MediaImage
-	case "audio/ogg", "audio/mpeg":
+	case "audio/ogg", "audio/mpeg", "audio/mp4":
 		return wa.MediaAudio
 	default:
 		return wa.MediaDocument
