@@ -95,26 +95,24 @@ func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 }
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
-	log.Printf("CONTACT :: %#v\n", contact)
+	if isDevelopment() {
+		log.Printf("(%s)(DEV) CONTACT :: %#v\n", h.Bot.GetNumber(), contact)
+	}
 }
 
 func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	if isDevelopment() {
+		b, err := json.Marshal(msg)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-	log.Printf("INFO :: %#v\n", string(b))
+		log.Printf("(%s)(DEV) INFO :: %#v\n", h.Bot.GetNumber(), string(b))
+	}
 }
 
 func (h *QPMessageHandler) HandleImageMessage(msg whatsapp.ImageMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: ImageMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
@@ -127,12 +125,6 @@ func (h *QPMessageHandler) HandleImageMessage(msg whatsapp.ImageMessage) {
 }
 
 func (h *QPMessageHandler) HandleLocationMessage(msg whatsapp.LocationMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: LocationMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
@@ -144,12 +136,6 @@ func (h *QPMessageHandler) HandleLocationMessage(msg whatsapp.LocationMessage) {
 }
 
 func (h *QPMessageHandler) HandleLiveLocationMessage(msg whatsapp.LiveLocationMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: LiveLocationMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
@@ -175,12 +161,6 @@ func (h *QPMessageHandler) HandleDocumentMessage(msg whatsapp.DocumentMessage) {
 }
 
 func (h *QPMessageHandler) HandleContactMessage(msg whatsapp.ContactMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: ContactMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
