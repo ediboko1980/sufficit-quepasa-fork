@@ -34,6 +34,17 @@ implemented WhatsApp features). Use with caution.
 
 For HTTPS use Nginx.
 
+## If are you looking for a NODE.JS Project
+
+Take a look at
+https://github.com/pedroslopez/whatsapp-web.js/pulls
+
+Its a lot more complete tool to whatsapp unofficial api
+
+## Join our community 
+Matrix chat room #cdr-link-dev-support:matrix.org
+https://app.element.io/#/room/#cdr-link-dev-support:matrix.org
+
 ## Usage
 
 ### Prerequisites
