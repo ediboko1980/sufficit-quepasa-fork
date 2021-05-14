@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
@@ -42,7 +43,20 @@ func respondNotReady(w http.ResponseWriter, err error) {
 }
 
 func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
-	log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
+	if strings.Contains(err.Error(), "invalid websocket") {
+
+		// Desconexão forçado é algum evento iniciado pelo whatsapp
+		log.Printf("(%s) Desconexão forçada por motivo de websocket inválido ou sem resposta", bot.GetNumber())
+
+		// Reseta
+		waServer, _ := models.GetServer(bot.ID)
+		if waServer != nil {
+			go waServer.Restart()
+		}
+
+	} else {
+		log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
+	}
 	respondError(w, err, http.StatusInternalServerError)
 }
 
