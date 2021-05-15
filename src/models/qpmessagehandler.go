@@ -71,21 +71,21 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 // Message handler
 
 func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
-
-	// mensagem de desconexão, o número de whatsapp for removido da lista de permitidos para whatsapp web
-	//JsonMessage: ["Cmd",{"type":"disconnect","kind":"replaced"}]
-
 	var waJsonMessage WhatsAppJsonMessage
 	err := json.Unmarshal([]byte(msgString), &waJsonMessage)
-	if err != nil {
+	if err == nil {
 		if waJsonMessage.Cmd.Type == "disconnect" {
 			// Restarting because an order of whatsapp
 			log.Printf("(%s) Restart Order by: %s", h.Bot.GetNumber(), waJsonMessage.Cmd.Kind)
-			h.Server.Restart()
+			go h.Server.Restart()
+		} else {
+			if isDevelopment() {
+				log.Printf("(%s)(DEV) JSON Unmarshal :: %s", h.Server.Bot.GetNumber(), waJsonMessage)
+			}
 		}
 	} else {
 		if isDevelopment() {
-			fmt.Println("JsonMessage: " + msgString)
+			log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
 	if isDevelopment() {
-		log.Printf("(%s)(DEV) CONTACT :: %#v\n", h.Bot.GetNumber(), contact)
+		log.Printf("(%s)(DEV) NEWCONTACT :: %#v\n", h.Bot.GetNumber(), contact)
 	}
 }
 
@@ -176,12 +176,6 @@ func (h *QPMessageHandler) HandleContactMessage(msg whatsapp.ContactMessage) {
 }
 
 func (h *QPMessageHandler) HandleAudioMessage(msg whatsapp.AudioMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: AudioMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
 	message.FillHeader(msg.Info, h.Server.Connection)
 
@@ -194,19 +188,7 @@ func (h *QPMessageHandler) HandleAudioMessage(msg whatsapp.AudioMessage) {
 }
 
 func (h *QPMessageHandler) HandleTextMessage(msg whatsapp.TextMessage) {
-	//con, err := ReceiveMessagePreProcessing(h, msg.Info)
-	//if err != nil {
-	//	log.Printf("SUFF ERROR G :: TextMessage error on pre processing received message: %v", err)
-	//	return
-	//}
-
 	message := CreateQPMessage(msg.Info)
-
-	if h.Server.Connection.Info == nil {
-		log.Print("nil connection information on text msg")
-		return
-	}
-
 	message.FillHeader(msg.Info, h.Server.Connection)
 
 	//  --> Personalizado para esta seção
@@ -216,7 +198,7 @@ func (h *QPMessageHandler) HandleTextMessage(msg whatsapp.TextMessage) {
 	h.Server.AppenMsgToCache(message)
 }
 
-// Não sei pra que é utilizado
+// Se chamado em modo síncrono, mantém os handlers ativos
 func (h *QPMessageHandler) ShouldCallSynchronously() bool {
 	return h.Synchronous
 }
