@@ -12,7 +12,10 @@ services:
     ports:
       - "31000:31000"
     environment:
+	  # - WEBAPIPORT=31000
       - APP_ENV=production
+	  # - APP_ENV=development
+	  # - JSONMESSAGES=true
       - PGHOST=localhost
       - PGDATABASE=quepasa_dev
       - PGPORT=5432
