@@ -25,7 +25,11 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		// Erros comuns de desconexão por qualquer motivo aleatório
 		if strings.Contains(e.Err.Error(), "close 1006") {
 			// 1006 falha no websocket, informações inválidas, provavelmente baixa qualidade de internet no celular
-			log.Printf("(%s) Websocket corrupted, should restart ...", h.Server.Bot.GetNumber())
+			log.Printf("(%s) Websocket corrupted (probably poor connection quality), should restart ...", h.Server.Bot.GetNumber())
+			go h.Server.Restart()
+		} else if strings.Contains(e.Err.Error(), "connection reset by peer") {
+			// Possível falha no keep alive, muito tempo sem tráfego
+			log.Printf("(%s) Websocket corrupted (probably inactive), should restart ...", h.Server.Bot.GetNumber())
 			go h.Server.Restart()
 		} else {
 			log.Printf("(%s) SUFF ERROR B :: %v", h.Server.Bot.GetNumber(), e.Err)
