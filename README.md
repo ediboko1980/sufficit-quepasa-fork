@@ -153,17 +153,18 @@ GET /bot/<TOKEN>/receive?timestamp=1541265073783
 ```
 ## Environment Variables
 
-WEBAPIPORT:		31000				#
-PGHOST: 		"localhost"			#
-PGDATABASE:		"quepasa_dev"   	#
-PGPORT:			"5432"				#
-PGUSER:			"quepasa"			#
-PGPASSWORD:		"quepasa"			#
-PGSSLMODE:		"disable"			#
-APP_ENV:		"development"		#
-JSONMESSAGES:	true				#
-SIGNING_SECRET:	"any secret here"	#
-TZ:				"America/Sao_Paulo"	#
+WEBAPIPORT:			31000				#
+PGHOST: 			"localhost"			#
+PGDATABASE:			"quepasa_dev"   	#
+PGPORT:				"5432"				#
+PGUSER:				"quepasa"			#
+PGPASSWORD:			"quepasa"			#
+PGSSLMODE:			"disable"			#
+APP_ENV:			"development"		#
+DEBUGREQUESTS:		true				#
+DEBUGJSONMESSAGES:	true				#
+SIGNING_SECRET:		"any secret here"	#
+TZ:					"America/Sao_Paulo"	#
 
 ## License
 

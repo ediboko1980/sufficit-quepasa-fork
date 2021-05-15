@@ -55,7 +55,9 @@ func respondServerError(bot models.QPBot, w http.ResponseWriter, err error) {
 		}
 
 	} else {
-		log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
+		if models.ENV.DEBUGRequests() {
+			log.Printf("(%s) !Request Server error: %s", bot.GetNumber(), err)
+		}
 	}
 	respondError(w, err, http.StatusInternalServerError)
 }

@@ -73,16 +73,13 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 			log.Printf("(%s) Restart Order by: %s", h.Bot.GetNumber(), waJsonMessage.Cmd.Kind)
 			go h.Server.Restart()
 		} else {
-			if isDevelopment() {
+			if ENV.IsDevelopment() {
 				log.Printf("(%s)(DEV) JSON Unmarshal :: %s", h.Server.Bot.GetNumber(), waJsonMessage)
 			}
 		}
 	} else {
-		if isDevelopment() {
-			printJsonMessages, err := GetEnvBool("JSONMESSAGES")
-			if err == nil && printJsonMessages {
-				log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
-			}
+		if ENV.DEBUGJsonMessages() {
+			log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
 		}
 	}
 }
@@ -96,13 +93,13 @@ func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 }
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
-	if isDevelopment() {
+	if ENV.IsDevelopment() {
 		log.Printf("(%s)(DEV) NEWCONTACT :: %#v\n", h.Bot.GetNumber(), contact)
 	}
 }
 
 func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
-	if isDevelopment() {
+	if ENV.IsDevelopment() {
 		b, err := json.Marshal(msg)
 		if err != nil {
 			fmt.Println(err)
