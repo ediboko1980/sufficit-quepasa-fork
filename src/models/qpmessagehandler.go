@@ -20,7 +20,6 @@ type QPMessageHandler struct {
 // Unico item realmente necessario para o sistema do whatsapp funcionar
 // Trata qualquer erro que influêncie no recebimento de msgs
 func (h *QPMessageHandler) HandleError(publicError error) {
-
 	if e, ok := publicError.(*whatsapp.ErrConnectionFailed); ok {
 		// Erros comuns de desconexão por qualquer motivo aleatório
 		if strings.Contains(e.Err.Error(), "close 1006") {
@@ -47,26 +46,21 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		// Se houve desconexão, reseta
 		go h.Server.Restart()
 		return
+	} else if strings.Contains(publicError.Error(), "keepAlive failed") {
+		// Se houve desconexão, reseta
+		log.Printf("(%s) Keep alive failed, restarting ...", h.Server.Bot.GetNumber())
+		go h.Server.Restart()
+		return
+	} else if strings.Contains(publicError.Error(), "server closed connection") {
+		// Se houve desconexão, reseta
+		log.Printf("(%s) Server closed connection, restarting ...", h.Server.Bot.GetNumber())
+		go h.Server.Restart()
+		return
 	} else if strings.Contains(publicError.Error(), "message type not implemented") {
 		// Ignorando, nova implementação com Handlers não criados ainda
 		return
 	} else {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.GetNumber(), publicError)
-	}
-
-	// Tratando erros individualmente
-	if strings.Contains(publicError.Error(), "keepAlive failed") {
-		// Se houve desconexão, reseta
-		log.Printf("(%s) Keep alive failed, restarting ...", h.Server.Bot.GetNumber())
-		go h.Server.Restart()
-		return
-	}
-
-	if strings.Contains(publicError.Error(), "server closed connection") {
-		// Se houve desconexão, reseta
-		log.Printf("(%s) Server closed connection, restarting ...", h.Server.Bot.GetNumber())
-		go h.Server.Restart()
-		return
 	}
 }
 
