@@ -48,7 +48,7 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		go h.Server.Restart()
 		return
 	} else if strings.Contains(publicError.Error(), "message type not implemented") {
-		// Ignorando, novas implementação com Handlers não criados ainda
+		// Ignorando, nova implementação com Handlers não criados ainda
 		return
 	} else {
 		log.Printf("(%s) SUFF ERROR D :: %s", h.Server.Bot.GetNumber(), publicError)
@@ -57,18 +57,18 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 	// Tratando erros individualmente
 	if strings.Contains(publicError.Error(), "keepAlive failed") {
 		// Se houve desconexão, reseta
+		log.Printf("(%s) Keep alive failed, restarting ...", h.Server.Bot.GetNumber())
 		go h.Server.Restart()
 		return
 	}
 
 	if strings.Contains(publicError.Error(), "server closed connection") {
 		// Se houve desconexão, reseta
+		log.Printf("(%s) Server closed connection, restarting ...", h.Server.Bot.GetNumber())
 		go h.Server.Restart()
 		return
 	}
 }
-
-// Message handler
 
 func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 	var waJsonMessage WhatsAppJsonMessage
@@ -85,7 +85,10 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 		}
 	} else {
 		if isDevelopment() {
-			log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
+			printJsonMessages, err := GetEnvBool("JSONMESSAGES")
+			if err == nil && printJsonMessages {
+				log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
+			}
 		}
 	}
 }
