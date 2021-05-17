@@ -116,10 +116,10 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 			caption = caption[:idx]
 		}
 
-		switch attachment.MIME {
-		case "audio/ogg", "audio/mpeg":
+		switch attachment.WAMediaType() {
+		case whatsapp.MediaAudio:
 			{
-				ptt := attachment.MIME == "audio/ogg"
+				ptt := strings.HasPrefix(attachment.MIME, "audio/ogg")
 				msg := whatsapp.AudioMessage{
 					Info:    info,
 					Length:  uint32(attachment.Length),
@@ -129,7 +129,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 				}
 				messageID, err = server.SendMessage(msg)
 			}
-		case "image/png", "image/jpeg":
+		case whatsapp.MediaImage:
 			{
 				msg := whatsapp.ImageMessage{
 					Info:    info,

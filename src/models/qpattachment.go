@@ -21,7 +21,7 @@ type QPAttachment struct {
 // Traz o MediaType para download do whatsapp
 func (m QPAttachment) WAMediaType() wa.MediaType {
 
-	if strings.Contains(m.MIME, "document") {
+	if strings.Contains(m.MIME, "wa-document") {
 		return wa.MediaDocument
 	}
 
@@ -29,9 +29,9 @@ func (m QPAttachment) WAMediaType() wa.MediaType {
 	// fica somente o mime mesmo
 	mimeOnly := strings.Split(m.MIME, ";")
 	switch mimeOnly[0] {
-	case "image/jpeg":
+	case "image/png", "image/jpeg":
 		return wa.MediaImage
-	case "audio/ogg", "audio/mpeg", "audio/mp4":
+	case "audio/ogg", "audio/mpeg", "audio/mp4", "audio/x-wav":
 		return wa.MediaAudio
 	default:
 		return wa.MediaDocument
