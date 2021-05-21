@@ -274,3 +274,10 @@ func (server *QPWhatsAppServer) SendMessage(msg interface{}) (string, error) {
 
 	return messageID, err
 }
+
+func (server *QPWhatsAppServer) IsDevelopment() bool {
+	if ENV.IsDevelopment() {
+		return server.Bot.Devel
+	}
+	return false
+}

@@ -21,6 +21,7 @@ type QPBot struct {
 	WebHook   string `db:"webhook" json:"webhook"`
 	CreatedAt string `db:"created_at" json:"created_at"`
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
+	Devel     bool   `db:"devel" json:"devel"`
 }
 
 func FindAllBots(db *sqlx.DB) ([]QPBot, error) {
@@ -69,9 +70,9 @@ func CreateBot(db *sqlx.DB, botID string, userID string) (QPBot, error) {
 	token := uuid.New().String()
 	now := time.Now().Format(time.RFC3339)
 	query := `INSERT INTO bots
-    (id, is_verified, token, user_id, created_at, updated_at, webhook)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	if _, err := db.Exec(query, botID, false, token, userID, now, now, ""); err != nil {
+    (id, is_verified, token, user_id, created_at, updated_at, webhook, devel)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	if _, err := db.Exec(query, botID, false, token, userID, now, now, "", false); err != nil {
 		return bot, err
 	}
 
@@ -138,6 +139,19 @@ func (bot *QPBot) WebHookUpdate(db *sqlx.DB) error {
 
 func (bot *QPBot) WebHookSincronize(db *sqlx.DB) {
 	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE id = $1", bot.ID)
+}
+
+func (bot *QPBot) ToggleDevel() (err error) {
+	now := time.Now().Format(time.RFC3339)
+	query := "UPDATE bots SET devel = $3, updated_at = $1 WHERE id = $2"
+	if bot.Devel {
+		_, err = GetDB().Exec(query, now, bot.ID, false)
+		bot.Devel = false
+	} else {
+		_, err = GetDB().Exec(query, now, bot.ID, true)
+		bot.Devel = true
+	}
+	return err
 }
 
 // Encaminha msg ao WebHook específicado

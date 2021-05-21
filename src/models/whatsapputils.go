@@ -17,17 +17,22 @@ func CreateQPMessage(Info whatsapp.MessageInfo) (message QPMessage) {
 	return
 }
 
-func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, con *whatsapp.Conn) (err error) {
+func (message *QPMessage) FillHeader(Info whatsapp.MessageInfo, server *QPWhatsAppServer) (err error) {
 
+	con := server.Connection
 	if con == nil {
-		err = fmt.Errorf("nil connection")
-		log.Print(err)
+		err = fmt.Errorf("(%s)(DEV) Null connection on filling headers", server.Bot.GetNumber())
+		if server.IsDevelopment() {
+			log.Print(err)
+		}
 		return
 	}
 
 	if con.Info == nil {
-		err = fmt.Errorf("nil connection information")
-		log.Print(err)
+		err = fmt.Errorf("(%s)(DEV) Null connection information on filling headers", server.Bot.GetNumber())
+		if server.IsDevelopment() {
+			log.Print(err)
+		}
 		return
 	}
 

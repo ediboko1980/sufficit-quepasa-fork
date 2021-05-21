@@ -1,0 +1,1 @@
+ALTER TABLE bots ADD COLUMN devel BOOLEAN NOT NULL DEFAULT false;        

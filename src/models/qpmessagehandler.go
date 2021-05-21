@@ -93,13 +93,13 @@ func (h *QPMessageHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 }
 
 func (h *QPMessageHandler) HandleNewContact(contact whatsapp.Contact) {
-	if ENV.IsDevelopment() {
+	if h.Server.IsDevelopment() {
 		log.Printf("(%s)(DEV) NEWCONTACT :: %#v\n", h.Bot.GetNumber(), contact)
 	}
 }
 
 func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
-	if ENV.IsDevelopment() {
+	if h.Server.IsDevelopment() {
 		b, err := json.Marshal(msg)
 		if err != nil {
 			fmt.Println(err)
@@ -112,7 +112,7 @@ func (h *QPMessageHandler) HandleInfoMessage(msg whatsapp.MessageInfo) {
 
 func (h *QPMessageHandler) HandleImageMessage(msg whatsapp.ImageMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Imagem recebida: " + msg.Type
@@ -124,7 +124,7 @@ func (h *QPMessageHandler) HandleImageMessage(msg whatsapp.ImageMessage) {
 
 func (h *QPMessageHandler) HandleLocationMessage(msg whatsapp.LocationMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Localização recebida ... "
@@ -135,7 +135,7 @@ func (h *QPMessageHandler) HandleLocationMessage(msg whatsapp.LocationMessage) {
 
 func (h *QPMessageHandler) HandleLiveLocationMessage(msg whatsapp.LiveLocationMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Localização em tempo real recebida ... "
@@ -146,7 +146,7 @@ func (h *QPMessageHandler) HandleLiveLocationMessage(msg whatsapp.LiveLocationMe
 
 func (h *QPMessageHandler) HandleDocumentMessage(msg whatsapp.DocumentMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	innerMSG := msg.Info.Source.Message.DocumentMessage
@@ -160,7 +160,7 @@ func (h *QPMessageHandler) HandleDocumentMessage(msg whatsapp.DocumentMessage) {
 
 func (h *QPMessageHandler) HandleContactMessage(msg whatsapp.ContactMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Contato VCARD recebido ... "
@@ -171,7 +171,7 @@ func (h *QPMessageHandler) HandleContactMessage(msg whatsapp.ContactMessage) {
 
 func (h *QPMessageHandler) HandleAudioMessage(msg whatsapp.AudioMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = "Audio recebido: " + msg.Type
@@ -183,7 +183,7 @@ func (h *QPMessageHandler) HandleAudioMessage(msg whatsapp.AudioMessage) {
 
 func (h *QPMessageHandler) HandleTextMessage(msg whatsapp.TextMessage) {
 	message := CreateQPMessage(msg.Info)
-	message.FillHeader(msg.Info, h.Server.Connection)
+	message.FillHeader(msg.Info, h.Server)
 
 	//  --> Personalizado para esta seção
 	message.Text = msg.Text
