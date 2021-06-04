@@ -74,6 +74,7 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 			go h.Server.Restart()
 		} else {
 			if ENV.IsDevelopment() {
+				log.Printf("(%s)(DEV) JSON Unmarshal string :: %s", h.Server.Bot.GetNumber(), msgString)
 				log.Printf("(%s)(DEV) JSON Unmarshal :: %s", h.Server.Bot.GetNumber(), waJsonMessage)
 			}
 		}
