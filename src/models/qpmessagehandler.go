@@ -48,8 +48,8 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		return
 	} else if strings.Contains(publicError.Error(), "keepAlive failed") {
 		// Se houve desconexão, reseta
-		log.Printf("(%s) Keep alive failed, restarting ...", h.Server.Bot.GetNumber())
-		go h.Server.Restart()
+		log.Printf("(%s) Keep alive failed, waiting ...", h.Server.Bot.GetNumber())
+		// go h.Server.Restart()
 		return
 	} else if strings.Contains(publicError.Error(), "server closed connection") {
 		// Se houve desconexão, reseta
