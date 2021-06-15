@@ -61,8 +61,8 @@ func CreateConnection() (*whatsapp.Conn, error) {
 		return con, err
 	}
 
-	con.SetClientName("QuePasa for Link", "QuePasa", "0.4")
-	con.SetClientVersion(0, 4, 2088)
+	con.SetClientName("QuePasa for Link", "QuePasa", "0.6")
+	con.SetClientVersion(2, 2121, 6)
 
 	return con, err
 }
