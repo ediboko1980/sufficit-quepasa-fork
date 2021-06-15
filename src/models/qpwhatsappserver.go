@@ -36,7 +36,7 @@ func SignInWithQRCode(user User, out chan<- []byte) (bot QPBot, err error) {
 		var png []byte
 		png, err := qrcode.Encode(<-qr, qrcode.Medium, 256)
 		if err != nil {
-			log.Printf("SUFF ERROR C :: %#v\n", err.Error())
+			log.Printf("(%s)(ERR) SUFF ERROR C :: %#v\n", bot.GetNumber(), err.Error())
 		}
 		encodedPNG := base64.StdEncoding.EncodeToString(png)
 		out <- []byte(encodedPNG)
@@ -105,7 +105,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		} else if strings.Contains(err.Error(), "restore session connection timed out") {
 			log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
 		} else {
-			log.Printf("(%s) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
+			log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
 	} else {
 		*server.Status = "ready"
@@ -132,7 +132,7 @@ func (server *QPWhatsAppServer) Restart() {
 		err := server.Initialize()
 		if err != nil {
 			*server.Status = "critical"
-			log.Printf("(%s) Critical error on WhatsApp Server: %s", server.Bot.GetNumber(), err.Error())
+			log.Printf("(%s)(ERR) Critical error on WhatsApp Server: %s", server.Bot.GetNumber(), err.Error())
 		}
 	}
 }
@@ -182,6 +182,7 @@ func (server *QPWhatsAppServer) GetMessages(timestamp uint64) (messages []QPMess
 func (server *QPWhatsAppServer) startHandlers() (err error) {
 	con, err := CreateConnection()
 	if err != nil {
+		log.Printf("(%s)(ERR) Error on creating connection :: %s", server.Bot.GetNumber(), err)
 		return err
 	}
 
@@ -195,12 +196,14 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 	// Consultando banco de dados e buscando dados de alguma seção salva
 	session, err := ReadSession(server.Bot.ID)
 	if err != nil {
+		log.Printf("(%s)(ERR) Error on reading session :: %s", server.Bot.GetNumber(), err)
 		return
 	}
 
 	// Agora sim, restaura a conexão com o whatsapp apartir de uma seção salva
 	session, err = con.RestoreWithSession(session)
 	if err != nil {
+		log.Printf("(%s)(ERR) Error on restore session :: %s", server.Bot.GetNumber(), err)
 		return
 	}
 
@@ -212,6 +215,7 @@ func (server *QPWhatsAppServer) startHandlers() (err error) {
 
 	// Atualiza o banco de dados com os novos dados
 	if err = WriteSession(server.Bot.ID, session); err != nil {
+		log.Printf("(%s)(ERR) Erro on writing session :: %s", server.Bot.GetNumber(), err)
 		return
 	}
 
