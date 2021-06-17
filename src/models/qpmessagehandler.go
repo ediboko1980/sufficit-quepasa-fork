@@ -77,13 +77,13 @@ func (h *QPMessageHandler) HandleJsonMessage(msgString string) {
 			log.Printf("(%s) Restart Order by: %s", h.Bot.GetNumber(), waJsonMessage.Cmd.Kind)
 			go h.Server.Restart()
 		} else {
-			if ENV.IsDevelopment() {
+			if h.Server.IsDevelopment() {
 				log.Printf("(%s)(DEV) JSON Unmarshal string :: %s", h.Server.Bot.GetNumber(), msgString)
 				log.Printf("(%s)(DEV) JSON Unmarshal :: %s", h.Server.Bot.GetNumber(), waJsonMessage)
 			}
 		}
 	} else {
-		if ENV.DEBUGJsonMessages() {
+		if h.Server.IsDevelopment() && ENV.DEBUGJsonMessages() {
 			log.Printf("(%s)(DEV) JSON :: %s", h.Server.Bot.GetNumber(), msgString)
 		}
 	}
