@@ -95,7 +95,7 @@ func SendMessageFromBOT(botID string, recipient string, text string, attachment 
 		RemoteJid: recipient,
 	}
 
-	if ENV.IsDevelopment() {
+	if server.IsDevelopment() {
 		log.Printf("(%s)(DEV) Sending msg from bot :: %s :: %s", server.Bot.GetNumber(), recipient, text)
 	}
 

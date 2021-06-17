@@ -195,3 +195,7 @@ func (bot *QPBot) Toggle() (err error) {
 	}
 	return
 }
+
+func (bot *QPBot) IsDevelopmentGlobal() bool {
+	return ENV.IsDevelopment()
+}

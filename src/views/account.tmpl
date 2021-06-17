@@ -47,14 +47,16 @@
                   </form>
                 </p>
                 {{ if .Verified }}
-                  <p class="control"> 
-                    <form class="" method="post" action="/bot/debug">
-                      <input name="botID" type="hidden" value="{{ .ID }}">
-                      <button class="button is-warning {{ if .Devel }}is-hovered{{ else }}is-outlined{{ end }}" title="Toggle Debug for this bot">
-                        <span class="icon is-small is-inline"><i class="fa fa-bug"></i></span>
-                      </button>
-                    </form>
-                  </p>
+                  {{ if .IsDevelopmentGlobal }}
+                    <p class="control"> 
+                      <form class="" method="post" action="/bot/debug">
+                        <input name="botID" type="hidden" value="{{ .ID }}">
+                        <button class="button is-warning {{ if .Devel }}is-hovered{{ else }}is-outlined{{ end }}" title="Toggle Debug for this bot">
+                          <span class="icon is-small is-inline"><i class="fa fa-bug"></i></span>
+                        </button>
+                      </form>
+                    </p>
+                  {{ end }}
                   <p class="control"> 
                     <form class="" method="post" action="/bot/toggle">
                       <input name="botID" type="hidden" value="{{ .ID }}">
