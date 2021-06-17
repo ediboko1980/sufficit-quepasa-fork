@@ -60,6 +60,8 @@ func addWebRoutes(r chi.Router) {
 		r.Get("/bot/verify", VerifyFormHandler)
 		r.Post("/bot/delete", DeleteHandler)
 		r.Post("/bot/cycle", CycleHandler)
+		r.Post("/bot/debug", DebugHandler)
+		r.Post("/bot/toggle", ToggleHandler)
 		r.Get("/bot/{botID}", SendFormHandler)
 		r.Get("/bot/{botID}/send", SendFormHandler)
 		r.Post("/bot/{botID}/send", SendHandler)

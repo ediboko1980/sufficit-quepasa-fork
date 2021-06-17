@@ -88,12 +88,31 @@ func (server *QPWhatsAppServer) Initialize() (err error) {
 	return nil
 }
 
+// Inicializa um repetidor eterno que confere o estado da conexão e tenta novamente a cada 10 segundos
+func (server *QPWhatsAppServer) Shutdown() (err error) {
+	//server.syncConnection.Lock() // Travando
+
+	*server.Status = "halting"
+	log.Printf("(%s) Shutting Down WhatsApp Server ...", server.Bot.GetNumber())
+
+	server.Connection.RemoveHandlers()
+
+	_, err = server.Connection.Disconnect()
+	if err != nil {
+		log.Printf("(%s)(ERR) Shutting WhatsApp Server : %s", server.Bot.GetNumber(), err.Error())
+	} else {
+		*server.Status = "stopped"
+	}
+
+	//server.syncConnection.Unlock() // Destravando
+	return
+}
+
 func (server *QPWhatsAppServer) Start() (err error) {
+	server.syncConnection.Lock() // Travando
+
 	*server.Status = "starting"
 	log.Printf("(%s) Starting WhatsApp Server ...", server.Bot.GetNumber())
-
-	server.syncConnection.Lock() // Travando
-	// ------
 
 	// Inicializando conexões e handlers
 	err = server.startHandlers()
@@ -111,9 +130,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		*server.Status = "ready"
 	}
 
-	// ------
 	server.syncConnection.Unlock() // Destravando
-
 	return
 }
 

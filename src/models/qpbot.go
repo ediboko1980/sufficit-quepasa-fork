@@ -181,3 +181,17 @@ func (bot *QPBot) PostToWebHook(message QPMessage) error {
 	}
 	return nil
 }
+
+func (bot *QPBot) Toggle() (err error) {
+	server, ok := WhatsAppService.Servers[bot.ID]
+	if !ok {
+		go WhatsAppService.AppendNewServer(*bot)
+	} else {
+		if *server.Status == "stopped" || *server.Status == "created" {
+			err = server.Start()
+		} else {
+			err = server.Shutdown()
+		}
+	}
+	return
+}

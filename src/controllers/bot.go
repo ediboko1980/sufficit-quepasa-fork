@@ -43,7 +43,7 @@ var messageReceiveErrors = promauto.NewCounter(prometheus.CounterOpts{
 // Cycle
 //
 
-// CycleHandler renders route POST "/bot/{botID}/cycle"
+// CycleHandler renders route POST "/bot/cycle"
 func CycleHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUser(r)
 	if err != nil {
@@ -60,6 +60,54 @@ func CycleHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = bot.CycleToken(models.GetDB())
 	if err != nil {
+		return
+	}
+
+	http.Redirect(w, r, "/account", http.StatusFound)
+}
+
+// DebugHandler renders route POST "/bot/debug"
+func DebugHandler(w http.ResponseWriter, r *http.Request) {
+	user, err := models.GetUser(r)
+	if err != nil {
+		redirectToLogin(w, r)
+		return
+	}
+
+	r.ParseForm()
+	botID := r.Form.Get("botID")
+	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	if err != nil {
+		return
+	}
+
+	err = bot.ToggleDevel()
+	if err != nil {
+		log.Print("Error on toggle devel: ", err)
+		return
+	}
+
+	http.Redirect(w, r, "/account", http.StatusFound)
+}
+
+// ToggleHandler renders route POST "/bot/toggle"
+func ToggleHandler(w http.ResponseWriter, r *http.Request) {
+	user, err := models.GetUser(r)
+	if err != nil {
+		redirectToLogin(w, r)
+		return
+	}
+
+	r.ParseForm()
+	botID := r.Form.Get("botID")
+	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	if err != nil {
+		return
+	}
+
+	err = bot.Toggle()
+	if err != nil {
+		log.Print("error on toggle: ", err)
 		return
 	}
 

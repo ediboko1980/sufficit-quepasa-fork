@@ -44,7 +44,7 @@ func (service *QPWhatsAppService) AppendNewServer(bot QPBot) {
 	service.Sync.Unlock()
 
 	// Inicializa o servidor
-	go server.Initialize()
+	//go server.Initialize()
 }
 
 // Função privada que irá iniciar todos os servidores apartir do banco de dados

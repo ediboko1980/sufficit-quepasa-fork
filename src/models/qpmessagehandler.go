@@ -47,6 +47,10 @@ func (h *QPMessageHandler) HandleError(publicError error) {
 		go h.Server.Restart()
 		return
 	} else if strings.Contains(publicError.Error(), "keepAlive failed") {
+		if *h.Server.Status == "ready" {
+			*h.Server.Status = "unreachable"
+		}
+
 		// Se houve desconexão, reseta
 		log.Printf("(%s) Keep alive failed, waiting ...", h.Server.Bot.GetNumber())
 		// go h.Server.Restart()
