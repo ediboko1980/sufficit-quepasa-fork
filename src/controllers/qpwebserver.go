@@ -81,12 +81,18 @@ func addWebRoutes(r chi.Router) {
 
 func addAPIRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
-		r.Get("/v1/bot/{token}", InfoAPIHandler)
-		r.Post("/v1/bot/{token}/send", SendAPIHandler)
-		r.Get("/v1/bot/{token}/receive", ReceiveAPIHandler)
-
-		r.Post("/v1/bot/{token}/attachment", AttachmentHandler)
-		r.Post("/v1/bot/{token}/webhook", WebHookHandler)
+		r.Get("/v1/bot/{token}", InfoAPIHandlerV1)
+		r.Post("/v1/bot/{token}/send", SendAPIHandlerV1)
+		r.Get("/v1/bot/{token}/receive", ReceiveAPIHandlerV1)
+		r.Post("/v1/bot/{token}/attachment", AttachmentAPIHandlerV1)
+		r.Post("/v1/bot/{token}/webhook", WebHookAPIHandlerV1)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get("/v2/bot/{token}", InfoAPIHandlerV2)
+		r.Post("/v2/bot/{token}/send", SendAPIHandlerV2)
+		r.Get("/v2/bot/{token}/receive", ReceiveAPIHandlerV2)
+		r.Post("/v2/bot/{token}/attachment", AttachmentAPIHandlerV2)
+		r.Post("/v2/bot/{token}/webhook", WebHookAPIHandlerV2)
 	})
 }
 
