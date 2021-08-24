@@ -33,25 +33,25 @@ func FindAllBots(db *sqlx.DB) ([]QPBot, error) {
 
 func FindAllBotsForUser(db *sqlx.DB, userID string) ([]QPBot, error) {
 	bots := []QPBot{}
-	err := db.Select(&bots, "SELECT * FROM bots WHERE user_id = $1", userID)
+	err := db.Select(&bots, "SELECT * FROM bots WHERE user_id = ?", userID)
 	return bots, err
 }
 
 func FindBotByToken(db *sqlx.DB, token string) (QPBot, error) {
 	var bot QPBot
-	err := db.Get(&bot, "SELECT * FROM bots WHERE token = $1", token)
+	err := db.Get(&bot, "SELECT * FROM bots WHERE token = ?", token)
 	return bot, err
 }
 
 func FindBotForUser(db *sqlx.DB, userID string, ID string) (QPBot, error) {
 	var bot QPBot
-	err := db.Get(&bot, "SELECT * FROM bots WHERE user_id = $1 AND id = $2", userID, ID)
+	err := db.Get(&bot, "SELECT * FROM bots WHERE user_id = ? AND id = ?", userID, ID)
 	return bot, err
 }
 
 func FindBotByID(db *sqlx.DB, botID string) (QPBot, error) {
 	var bot QPBot
-	err := db.Get(&bot, "SELECT * FROM bots WHERE id = $1", botID)
+	err := db.Get(&bot, "SELECT * FROM bots WHERE id = ?", botID)
 	return bot, err
 }
 
@@ -69,10 +69,10 @@ func GetOrCreateBot(db *sqlx.DB, botID string, userID string) (bot QPBot, err er
 func CreateBot(db *sqlx.DB, botID string, userID string) (QPBot, error) {
 	var bot QPBot
 	token := uuid.New().String()
-	now := time.Now().Format(time.RFC3339)
+	now := time.Now()
 	query := `INSERT INTO bots
     (id, is_verified, token, user_id, created_at, updated_at, webhook, devel)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	if _, err := db.Exec(query, botID, false, token, userID, now, now, "", false); err != nil {
 		return bot, err
 	}
@@ -81,22 +81,22 @@ func CreateBot(db *sqlx.DB, botID string, userID string) (QPBot, error) {
 }
 
 func (bot *QPBot) MarkVerified(db *sqlx.DB, ok bool) error {
-	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE bots SET is_verified = $3, updated_at = $1 WHERE id = $2"
+	now := time.Now()
+	query := "UPDATE bots SET is_verified = ?, updated_at = ? WHERE id = ?"
 	_, err := db.Exec(query, now, bot.ID, ok)
 	return err
 }
 
 func (bot *QPBot) CycleToken(db *sqlx.DB) error {
 	token := uuid.New().String()
-	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE bots SET token = $1, updated_at = $2 WHERE id = $3"
+	now := time.Now()
+	query := "UPDATE bots SET token = ?, updated_at = ? WHERE id = ?"
 	_, err := db.Exec(query, token, now, bot.ID)
 	return err
 }
 
 func (bot *QPBot) Delete(db *sqlx.DB) error {
-	query := "DELETE FROM bots WHERE id = $1"
+	query := "DELETE FROM bots WHERE id = ?"
 	_, err := db.Exec(query, bot.ID)
 	return err
 }
@@ -132,19 +132,19 @@ func (bot *QPBot) GetBatteryInfo() WhatsAppBateryStatus {
 }
 
 func (bot *QPBot) WebHookUpdate(db *sqlx.DB) error {
-	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE bots SET webhook = $1, updated_at = $2 WHERE id = $3"
+	now := time.Now()
+	query := "UPDATE bots SET webhook = ?, updated_at = ? WHERE id = ?"
 	_, err := db.Exec(query, bot.WebHook, now, bot.ID)
 	return err
 }
 
 func (bot *QPBot) WebHookSincronize(db *sqlx.DB) {
-	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE id = $1", bot.ID)
+	db.Get(&bot.WebHook, "SELECT webhook FROM bots WHERE id = ?", bot.ID)
 }
 
 func (bot *QPBot) ToggleDevel() (err error) {
-	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE bots SET devel = $3, updated_at = $1 WHERE id = $2"
+	now := time.Now()
+	query := "UPDATE bots SET devel = ?, updated_at = ? WHERE id = ?"
 	if bot.Devel {
 		_, err = GetDB().Exec(query, now, bot.ID, false)
 		bot.Devel = false

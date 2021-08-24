@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-chi/jwtauth"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -97,13 +98,9 @@ func MigrateToLatest() (err error) {
 		}
 	}
 
-	host := os.Getenv("PGHOST")
-	database := os.Getenv("PGDATABASE")
-	port := os.Getenv("PGPORT")
-	user := os.Getenv("PGUSER")
-	password := os.Getenv("PGPASSWORD")
-	ssl := os.Getenv("PGSSLMODE")
-	connection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, database, ssl)
+	config := GetDBConfig()
+	connection := fmt.Sprintf("%s://%s:%s@tcp(%s:%s)/%s",
+		config.Driver, config.User, config.Password, config.Host, config.Port, config.DataBase)
 
 	m, err := migrate.New(fullPath, connection)
 	if err != nil {

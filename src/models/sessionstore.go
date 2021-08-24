@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -16,7 +17,7 @@ type Store struct {
 
 func storeExists(db *sqlx.DB, wid string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) FROM sessionstore WHERE bot_id = $1", wid)
+	err := db.Get(&count, "SELECT count(*) FROM sessionstore WHERE bot_id = ?", wid)
 	return count > 0, err
 }
 
@@ -40,10 +41,8 @@ func GetOrCreateStore(db *sqlx.DB, wid string) (Store, error) {
 
 func CreateStore(db *sqlx.DB, wid string) (Store, error) {
 	var user Store
-	now := time.Now().Format(time.RFC3339)
-	query := `INSERT INTO sessionstore
-    (bot_id, created_at, updated_at)
-    VALUES ($1, $2, $3)`
+	now := time.Now()
+	query := `INSERT INTO sessionstore (bot_id, created_at, updated_at) VALUES (?, ?, ?)`
 	if _, err := db.Exec(query, wid, now, now); err != nil {
 		return user, err
 	}
@@ -53,19 +52,19 @@ func CreateStore(db *sqlx.DB, wid string) (Store, error) {
 
 func GetStore(db *sqlx.DB, wid string) (Store, error) {
 	var store Store
-	err := db.Get(&store, "SELECT * FROM sessionstore WHERE bot_id = $1", wid)
+	err := db.Get(&store, "SELECT * FROM sessionstore WHERE `bot_id` = ?", wid)
 	return store, err
 }
 
 func UpdateStore(db *sqlx.DB, wid string, data []byte) ([]byte, error) {
-	now := time.Now().Format(time.RFC3339)
-	query := "UPDATE sessionstore SET data = ($1::bytea), updated_at = $2 WHERE bot_id = $3"
+	now := time.Now()
+	query := "UPDATE sessionstore SET data = ?, updated_at = ? WHERE bot_id = ?"
 	_, err := db.Exec(query, data, now, wid)
 	return data, err
 }
 
 func DeleteStore(db *sqlx.DB, wid string) error {
-	query := "DELETE FROM sessionstore WHERE bot_id = $1"
+	query := "DELETE FROM sessionstore WHERE bot_id = ?"
 	_, err := db.Exec(query, wid)
 	return err
 }

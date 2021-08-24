@@ -26,26 +26,26 @@ func CountUsers(db *sqlx.DB) (int, error) {
 
 func FindUserByID(db *sqlx.DB, ID string) (User, error) {
 	var user User
-	err := db.Get(&user, "SELECT * FROM users WHERE id = $1", ID)
+	err := db.Get(&user, "SELECT * FROM users WHERE id = ?", ID)
 	return user, err
 }
 
 func FindUserByEmail(db *sqlx.DB, email string) (User, error) {
 	var user User
-	err := db.Get(&user, "SELECT * FROM users WHERE email = $1", email)
+	err := db.Get(&user, "SELECT * FROM users WHERE email = ?", email)
 	return user, err
 }
 
 func CheckUserExists(db *sqlx.DB, email string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) FROM users WHERE email = $1", email)
+	err := db.Get(&count, "SELECT count(*) FROM users WHERE email = ?", email)
 	return count > 0, err
 }
 
 func CheckUser(db *sqlx.DB, email string, password string) (User, error) {
 	var user User
 	var out User
-	err := db.Get(&user, "SELECT * FROM users WHERE email = $1", email)
+	err := db.Get(&user, "SELECT * FROM users WHERE email = ?", email)
 	if err != nil {
 		return out, err
 	}
@@ -71,7 +71,7 @@ func CreateUser(db *sqlx.DB, email string, password string) (User, error) {
 
 	query := `INSERT INTO users
     (id, email, username, password, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6)`
+    VALUES (?, ?, ?, ?, ?, ?)`
 	if _, err := db.Exec(query, userID, email, email, string(hashed), now, now); err != nil {
 		return user, err
 	}

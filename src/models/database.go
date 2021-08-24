@@ -21,15 +21,12 @@ var (
 // database environment variables
 func GetDB() *sqlx.DB {
 	Sync.Do(func() {
-		host := os.Getenv("PGHOST")
-		database := os.Getenv("PGDATABASE")
-		port := os.Getenv("PGPORT")
-		user := os.Getenv("PGUSER")
-		password := os.Getenv("PGPASSWORD")
-		ssl := os.Getenv("PGSSLMODE")
-		connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
-			host, database, port, user, password, ssl)
-		dbconn, err := sqlx.Connect("postgres", connection)
+		config := GetDBConfig()
+		connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+			config.User, config.Password, config.Host, config.Port, config.DataBase)
+		//connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
+		//	config.Host, config.DataBase, config.Port, config.User, config.Password, config.SSL)
+		dbconn, err := sqlx.Connect(config.Driver, connection)
 
 		// Tenta realizar a conexão
 		if err != nil {
@@ -48,4 +45,16 @@ func GetDB() *sqlx.DB {
 		Connection = dbconn
 	})
 	return Connection
+}
+
+func GetDBConfig() *QPDataBaseConfig {
+	config := &QPDataBaseConfig{}
+	config.Driver = os.Getenv("DBDRIVER")
+	config.Host = os.Getenv("DBHOST")
+	config.DataBase = os.Getenv("DBDATABASE")
+	config.Port = os.Getenv("DBPORT")
+	config.User = os.Getenv("DBUSER")
+	config.Password = os.Getenv("DBPASSWORD")
+	config.SSL = os.Getenv("DBSSLMODE")
+	return config
 }
