@@ -30,7 +30,7 @@ func main() {
 		host := fmt.Sprintf("%s:%s", os.Getenv("METRICS_HOST"), os.Getenv("METRICS_PORT"))
 
 		log.Println("Starting Metrics Service")
-		http.ListenAndServe(host, m)
+		log.Fatal(http.ListenAndServe(host, m))
 	}()
 
 	controllers.QPWebServerStart()
