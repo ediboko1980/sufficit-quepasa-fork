@@ -7,12 +7,15 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sufficit/sufficit-quepasa-fork/controllers"
 	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 func main() {
+	// Carregando variaveis de ambiente apartir de arquivo .env
+	godotenv.Load()
 
 	// Verifica se é necessario realizar alguma migração de base de dados
 	err := models.MigrateToLatest()
@@ -29,8 +32,11 @@ func main() {
 		m.Handle("/metrics", promhttp.Handler())
 		host := fmt.Sprintf("%s:%s", os.Getenv("METRICS_HOST"), os.Getenv("METRICS_PORT"))
 
-		log.Println("Starting Metrics Service :=> " + host)
-		log.Fatal(http.ListenAndServe(host, m))
+		log.Println("Starting Metrics Service")
+		err := http.ListenAndServe(host, m)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}()
 
 	controllers.QPWebServerStart()

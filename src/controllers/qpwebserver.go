@@ -21,7 +21,10 @@ func QPWebServerStart() {
 	}
 
 	log.Printf("Starting Web Server on Port: %s", webAPIPort)
-	log.Fatal(http.ListenAndServe(":"+webAPIPort, r))
+	err := http.ListenAndServe(":"+webAPIPort, r)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func newRouter() chi.Router {
