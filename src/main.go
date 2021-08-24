@@ -29,7 +29,7 @@ func main() {
 		m.Handle("/metrics", promhttp.Handler())
 		host := fmt.Sprintf("%s:%s", os.Getenv("METRICS_HOST"), os.Getenv("METRICS_PORT"))
 
-		log.Println("Starting Metrics Service")
+		log.Println("Starting Metrics Service :=> " + host)
 		log.Fatal(http.ListenAndServe(host, m))
 	}()
 
