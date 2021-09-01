@@ -41,6 +41,11 @@ func SendTextMessage(botID string, recipient string, text string) (response mode
 		return
 	}
 
+	response.Chat.ID = recipient
+	response.Chat.UserName = recipient
+	response.From.ID = server.Bot.ID
+	response.From.UserName = server.Bot.GetNumber()
+
 	// Informações basicas para todo tipo de mensagens
 	info := whatsapp.MessageInfo{
 		RemoteJid: recipient,
@@ -79,6 +84,11 @@ func SendDocumentMessage(botID string, recipient string, attachment models.QPAtt
 		err = fmt.Errorf("server not found or not ready")
 		return
 	}
+
+	response.Chat.ID = recipient
+	response.Chat.UserName = recipient
+	response.From.ID = server.Bot.ID
+	response.From.UserName = server.Bot.GetNumber()
 
 	// Informações basicas para todo tipo de mensagens
 	info := whatsapp.MessageInfo{
