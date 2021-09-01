@@ -302,3 +302,8 @@ func (server *QPWhatsAppServer) IsDevelopment() bool {
 	}
 	return false
 }
+
+// Retorna o titulo em cache (se houver) do id passado em parametro
+func (server *QPWhatsAppServer) GetTitle(Wid string) string {
+	return getTitle(server.Connection.Store, Wid)
+}
