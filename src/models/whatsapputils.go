@@ -128,6 +128,15 @@ func getTitle(store *whatsapp.Store, jid string) string {
 	return result
 }
 
+// Retorna algum titulo válido apartir de um jid
+func getContact(store *whatsapp.Store, jid string) whatsapp.Contact {
+	contact, ok := store.Contacts[jid]
+	if ok {
+		return contact
+	}
+	return whatsapp.Contact{}
+}
+
 // Retorna algum titulo válido apartir de um contato do whatsapp
 func getContactTitle(contact whatsapp.Contact) string {
 	var result string

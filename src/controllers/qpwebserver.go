@@ -92,7 +92,8 @@ func addAPIRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Get("/v2/bot/{token}", InfoAPIHandlerV2)
-		r.Post("/v2/bot/{token}/send", SendAPIHandlerV2)
+		r.Post("/v2/bot/{token}/sendtext", SendTextAPIHandlerV2)
+		r.Post("/v2/bot/{token}/senddocument", SendDocumentAPIHandlerV2)
 		r.Get("/v2/bot/{token}/receive", ReceiveAPIHandlerV2)
 		r.Post("/v2/bot/{token}/attachment", AttachmentAPIHandlerV2)
 		r.Post("/v2/bot/{token}/webhook", WebHookAPIHandlerV2)

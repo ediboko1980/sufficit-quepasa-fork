@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/sufficit/sufficit-quepasa-fork/models_v2"
 )
 
 type QPBot struct {
@@ -158,9 +157,7 @@ func (bot *QPBot) ToggleDevel() (err error) {
 // Encaminha msg ao WebHook específicado
 func (bot *QPBot) PostToWebHook(message QPMessage) error {
 	if len(bot.WebHook) > 0 {
-		payloadJson, _ := json.Marshal(&struct {
-			ChannelPost models_v2.QPMessageV2 `json:"channel_post"`
-		}{ChannelPost: message.ToV2()})
+		payloadJson, _ := json.Marshal(message.ToV2())
 		requestBody := bytes.NewBuffer(payloadJson)
 		resp, _ := http.Post(bot.WebHook, "application/json", requestBody)
 

@@ -1,4 +1,4 @@
-package models_v2
+package models
 
 type QPChatV2 struct {
 	ID    string `json:"id"`

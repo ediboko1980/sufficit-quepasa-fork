@@ -1,4 +1,4 @@
-package models_v2
+package models
 
 // Usuário no formato QuePasa (Telegram)
 type QPUserV2 struct {

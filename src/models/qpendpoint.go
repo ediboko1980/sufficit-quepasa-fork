@@ -1,7 +1,5 @@
 package models
 
-import "github.com/sufficit/sufficit-quepasa-fork/models_v2"
-
 // Destino de msg whatsapp
 type QPEndPoint struct {
 	ID     string `json:"id"`
@@ -22,15 +20,15 @@ func (source QPEndPoint) GetQPEndPointV2() QPEndPointV2 {
 	return ob2
 }
 
-func (source QPEndPoint) ToQPUserV2() models_v2.QPUserV2 {
-	result := models_v2.QPUserV2{
+func (source QPEndPoint) ToQPUserV2() QPUserV2 {
+	result := QPUserV2{
 		ID: source.ID,
 	}
 	return result
 }
 
-func (source QPEndPoint) ToQPChatV2() models_v2.QPChatV2 {
-	result := models_v2.QPChatV2{
+func (source QPEndPoint) ToQPChatV2() QPChatV2 {
+	result := QPChatV2{
 		ID: source.ID,
 	}
 	return result

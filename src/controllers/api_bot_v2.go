@@ -8,13 +8,12 @@ import (
 
 	"github.com/Rhymen/go-whatsapp"
 	"github.com/go-chi/chi"
+	"github.com/sufficit/sufficit-quepasa-fork/library"
 	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 // SendAPIHandler renders route "/v2/bot/{token}/send"
-func SendAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("SendAPIHandlerV2: %+v\n", r.Body)
-
+func SendTextAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	bot, err := models.FindBotByToken(models.GetDB(), token)
 	if err != nil {
@@ -33,7 +32,7 @@ func SendAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageID, err := models.SendMessageFromBOT(bot.ID, request.Recipient, request.Message, request.Attachment)
+	response, err := library.SendTextMessage(bot.ID, request.Recipient, request.Message)
 	if err != nil {
 		messageSendErrors.Inc()
 		respondServerError(bot, w, err)
@@ -41,16 +40,38 @@ func SendAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	messagesSent.Inc()
+	respondSuccess(w, response)
+}
 
-	res := &sendResponse{
-		Result: &sentMessage{
-			Source:    bot.GetNumber(),
-			Recipient: request.Recipient,
-			MessageId: messageID,
-		},
+// Usado para envio de documentos, anexos, separados do texto, em caso de imagem, aceita um caption (titulo)
+func SendDocumentAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	bot, err := models.FindBotByToken(models.GetDB(), token)
+	if err != nil {
+		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
+		return
 	}
 
-	respondSuccess(w, res)
+	// Declare a new Person struct.
+	var request models.QPSendDocumentRequestV2
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err = json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		respondServerError(bot, w, err)
+		return
+	}
+
+	response, err := library.SendDocumentMessage(bot.ID, request.Recipient, request.Attachment)
+	if err != nil {
+		messageSendErrors.Inc()
+		respondServerError(bot, w, err)
+		return
+	}
+
+	messagesSent.Inc()
+	respondSuccess(w, response)
 }
 
 // ReceiveAPIHandler renders route GET "/v1/bot/{token}/receive"
