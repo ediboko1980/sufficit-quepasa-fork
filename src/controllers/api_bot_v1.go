@@ -40,8 +40,8 @@ func SendAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 
 	messagesSent.Inc()
 
-	res := &sendResponse{
-		Result: &sentMessage{
+	res := &models.QPSendResponse{
+		Result: &models.QPSendResult{
 			Source:    bot.GetNumber(),
 			Recipient: request.Recipient,
 			MessageId: messageID,

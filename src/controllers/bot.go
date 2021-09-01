@@ -259,16 +259,6 @@ func SendHandler(w http.ResponseWriter, r *http.Request) {
 	renderSendForm(w, data)
 }
 
-type sentMessage struct {
-	Source    string `json:"source"`
-	Recipient string `json:"recipient"`
-	MessageId string `json:"messageId"`
-}
-
-type sendResponse struct {
-	Result *sentMessage `json:"result"`
-}
-
 //
 // Receive
 //

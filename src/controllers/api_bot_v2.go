@@ -39,6 +39,13 @@ func SendTextAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Para manter a compatibilidade
+	response.PreviusV1 = models.QPSendResult{
+		Source:    bot.GetNumber(),
+		Recipient: request.Recipient,
+		MessageId: response.ID,
+	}
+
 	messagesSent.Inc()
 	respondSuccess(w, response)
 }
@@ -68,6 +75,13 @@ func SendDocumentAPIHandlerV2(w http.ResponseWriter, r *http.Request) {
 		messageSendErrors.Inc()
 		respondServerError(bot, w, err)
 		return
+	}
+
+	// Para manter a compatibilidade
+	response.PreviusV1 = models.QPSendResult{
+		Source:    bot.GetNumber(),
+		Recipient: request.Recipient,
+		MessageId: response.ID,
 	}
 
 	messagesSent.Inc()
