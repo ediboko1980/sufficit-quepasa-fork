@@ -19,7 +19,7 @@ import (
 // wid = uinque id do whatsapp, não id do bot
 func ReadSession(wid string) (whatsapp.Session, error) {
 	var session whatsapp.Session
-	store, err := GetStore(GetDB(), wid)
+	store, err := WhatsAppService.DB.Store.Get(wid)
 	if err != nil {
 		return session, err
 	}
@@ -35,7 +35,7 @@ func ReadSession(wid string) (whatsapp.Session, error) {
 }
 
 func WriteSession(wid string, session whatsapp.Session) error {
-	_, err := GetOrCreateStore(GetDB(), wid)
+	_, err := WhatsAppService.DB.Store.GetOrCreate(wid)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func WriteSession(wid string, session whatsapp.Session) error {
 		return err
 	}
 
-	_, err = UpdateStore(GetDB(), wid, buff.Bytes())
+	_, err = WhatsAppService.DB.Store.Update(wid, buff.Bytes())
 	if err != nil {
 		return err
 	}

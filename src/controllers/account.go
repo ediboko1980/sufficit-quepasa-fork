@@ -21,7 +21,7 @@ type accountFormData struct {
 	PageTitle    string
 	ErrorMessage string
 	Bots         []models.QPBot
-	User         models.User
+	User         models.QPUser
 }
 
 // AccountFormHandler renders route GET "/account"
@@ -36,7 +36,7 @@ func AccountFormHandler(w http.ResponseWriter, r *http.Request) {
 		User:      user,
 	}
 
-	bots, err := models.FindAllBotsForUser(models.GetDB(), user.ID)
+	bots, err := models.WhatsAppService.DB.Bot.FindAllForUser(user.ID)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 	} else {
@@ -76,7 +76,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.CheckUser(models.GetDB(), email, password)
+	user, err := models.WhatsAppService.DB.User.Check(email, password)
 	if err != nil {
 		respondUnauthorized(w, errors.New("Incorrect username or password"))
 		return
@@ -138,7 +138,7 @@ func renderSetupForm(w http.ResponseWriter, data setupFormData) {
 
 // SetupFormHandler renders route GET "/setup"
 func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := models.CountUsers(models.GetDB())
+	count, err := models.WhatsAppService.DB.User.Count()
 	if count > 0 || err != nil {
 		redirectToLogin(w, r)
 		return
@@ -153,7 +153,7 @@ func SetupFormHandler(w http.ResponseWriter, r *http.Request) {
 
 // SetupHandler renders route POST "/setup"
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := models.CountUsers(models.GetDB())
+	count, err := models.WhatsAppService.DB.User.Count()
 	if count > 0 || err != nil {
 		redirectToLogin(w, r)
 		return
@@ -200,7 +200,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := models.CheckUserExists(models.GetDB(), email)
+	exists, err := models.WhatsAppService.DB.User.Exists(email)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 		renderSetupForm(w, data)
@@ -213,7 +213,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = models.CreateUser(models.GetDB(), email, password)
+	_, err = models.WhatsAppService.DB.User.Create(email, password)
 	if err != nil {
 		data.ErrorMessage = err.Error()
 		renderSetupForm(w, data)

@@ -25,7 +25,7 @@ type QPWhatsAppServer struct {
 }
 
 // Envia o QRCode para o usuário e aguarda pela resposta
-func SignInWithQRCode(user User, out chan<- []byte) (bot QPBot, err error) {
+func SignInWithQRCode(user QPUser, out chan<- []byte) (bot QPBot, err error) {
 	con, err := CreateConnection()
 	if err != nil {
 		return
@@ -48,7 +48,7 @@ func SignInWithQRCode(user User, out chan<- []byte) (bot QPBot, err error) {
 	}
 
 	// Se chegou até aqui é pq o QRCode foi validado e sincronizado
-	bot, err = GetOrCreateBot(GetDB(), con.Info.Wid, user.ID)
+	bot, err = WhatsAppService.DB.Bot.GetOrCreate(con.Info.Wid, user.ID)
 	if err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		*server.Status = "fail"
 		if strings.Contains(err.Error(), "401") {
 			log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
-			err = server.Bot.MarkVerified(GetDB(), false)
+			err = server.Bot.MarkVerified(false)
 		} else if strings.Contains(err.Error(), "restore session connection timed out") {
 			log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
 		} else {

@@ -21,8 +21,8 @@ import (
 
 // GetUser gets the user_id from the JWT and finds the
 // corresponding user in the database
-func GetUser(r *http.Request) (User, error) {
-	var user User
+func GetUser(r *http.Request) (QPUser, error) {
+	var user QPUser
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
 		return user, err
@@ -33,7 +33,7 @@ func GetUser(r *http.Request) (User, error) {
 		return user, errors.New("User ID missing")
 	}
 
-	return FindUserByID(GetDB(), userID)
+	return WhatsAppService.DB.User.FindByID(userID)
 }
 
 // CleanPhoneNumber removes all non-numeric characters from a string

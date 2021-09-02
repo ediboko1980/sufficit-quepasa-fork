@@ -1,6 +1,6 @@
 package models
 
-type QPDataBaseConfig struct {
+type QPDatabaseConfig struct {
 	Driver   string
 	Host     string
 	DataBase string

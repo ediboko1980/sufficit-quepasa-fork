@@ -8,6 +8,7 @@ import (
 // Serviço que controla os servidores / bots individuais do whatsapp
 type QPWhatsAppService struct {
 	Servers map[string]*QPWhatsAppServer
+	DB      *QPDataBase
 	Sync    *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 }
 
@@ -18,7 +19,8 @@ func QPWhatsAppStart() {
 
 	servers := make(map[string]*QPWhatsAppServer)
 	sync := &sync.Mutex{}
-	WhatsAppService = &QPWhatsAppService{servers, sync}
+	db := *GetDatabase()
+	WhatsAppService = &QPWhatsAppService{servers, &db, sync}
 
 	// iniciando servidores e cada bot individualmente
 	err := WhatsAppService.initService()
@@ -49,7 +51,7 @@ func (service *QPWhatsAppService) AppendNewServer(bot QPBot) {
 
 // Função privada que irá iniciar todos os servidores apartir do banco de dados
 func (service *QPWhatsAppService) initService() error {
-	bots, err := FindAllBots(GetDB())
+	bots, err := service.DB.Bot.FindAll()
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type QPDataBase struct{}
+type QPDataBase struct {
+	Config     QPDatabaseConfig
+	Connection *sqlx.DB
+	Store      IQPStore
+	User       IQPUser
+	Bot        IQPBot
+}
 
 var (
 	Sync       sync.Once // Objeto de sinaleiro para garantir uma única chamada em todo o andamento do programa
@@ -22,10 +28,14 @@ var (
 func GetDB() *sqlx.DB {
 	Sync.Do(func() {
 		config := GetDBConfig()
-		connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-			config.User, config.Password, config.Host, config.Port, config.DataBase)
-		//connection := fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
-		//	config.Host, config.DataBase, config.Port, config.User, config.Password, config.SSL)
+		var connection string
+		if config.Driver == "mysql" {
+			connection = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+				config.User, config.Password, config.Host, config.Port, config.DataBase)
+		} else {
+			connection = fmt.Sprintf("host=%s dbname=%s port=%s user=%s password=%s sslmode=%s",
+				config.Host, config.DataBase, config.Port, config.User, config.Password, config.SSL)
+		}
 		dbconn, err := sqlx.Connect(config.Driver, connection)
 
 		// Tenta realizar a conexão
@@ -47,8 +57,30 @@ func GetDB() *sqlx.DB {
 	return Connection
 }
 
-func GetDBConfig() *QPDataBaseConfig {
-	config := &QPDataBaseConfig{}
+func GetDatabase() *QPDataBase {
+	db := GetDB()
+	config := GetDBConfig()
+	var istore IQPStore
+	var iuser IQPUser
+	var ibot IQPBot
+
+	if config.Driver == "postgres" {
+		istore = QPStorePostgres{db}
+		iuser = QPUserPostgres{db}
+		ibot = QPBotPostgres{db}
+	} else if config.Driver == "mysql" {
+		istore = QPStoreMysql{db}
+		iuser = QPUserMysql{db}
+		ibot = QPBotMysql{db}
+	} else {
+		log.Fatal("database driver not supported")
+	}
+
+	return &QPDataBase{*config, db, istore, iuser, ibot}
+}
+
+func GetDBConfig() *QPDatabaseConfig {
+	config := &QPDatabaseConfig{}
 	config.Driver = os.Getenv("DBDRIVER")
 	config.Host = os.Getenv("DBHOST")
 	config.DataBase = os.Getenv("DBDATABASE")

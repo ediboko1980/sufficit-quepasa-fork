@@ -51,12 +51,12 @@ func CycleHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	botID := r.Form.Get("botID")
-	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	bot, err := models.WhatsAppService.DB.Bot.FindForUser(user.ID, botID)
 	if err != nil {
 		return
 	}
 
-	err = bot.CycleToken(models.GetDB())
+	err = bot.CycleToken()
 	if err != nil {
 		return
 	}
@@ -74,7 +74,7 @@ func DebugHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	botID := r.Form.Get("botID")
-	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	bot, err := models.WhatsAppService.DB.Bot.FindForUser(user.ID, botID)
 	if err != nil {
 		return
 	}
@@ -98,7 +98,7 @@ func ToggleHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	botID := r.Form.Get("botID")
-	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	bot, err := models.WhatsAppService.DB.Bot.FindForUser(user.ID, botID)
 	if err != nil {
 		return
 	}
@@ -179,7 +179,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("(%s) Verificação QRCode confirmada ...", bot.GetNumber())
-	err = bot.MarkVerified(models.GetDB(), true)
+	err = bot.MarkVerified(true)
 	if err != nil {
 		log.Println(err)
 	}
@@ -327,16 +327,16 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	botID := r.Form.Get("botID")
 
-	bot, err := models.FindBotForUser(models.GetDB(), user.ID, botID)
+	bot, err := models.WhatsAppService.DB.Bot.FindForUser(user.ID, botID)
 	if err != nil {
 		return
 	}
 
-	if err := models.DeleteStore(models.GetDB(), bot.ID); err != nil {
+	if err := models.WhatsAppService.DB.Store.Delete(bot.ID); err != nil {
 		return
 	}
 
-	if err := bot.Delete(models.GetDB()); err != nil {
+	if err := bot.Delete(); err != nil {
 		return
 	}
 
@@ -356,5 +356,5 @@ func findBot(r *http.Request) (models.QPBot, error) {
 
 	botID := chi.URLParam(r, "botID")
 
-	return models.FindBotForUser(models.GetDB(), user.ID, botID)
+	return models.WhatsAppService.DB.Bot.FindForUser(user.ID, botID)
 }

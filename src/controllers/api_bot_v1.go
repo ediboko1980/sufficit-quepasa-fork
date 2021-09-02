@@ -14,7 +14,7 @@ import (
 // SendAPIHandler renders route "/v1/bot/{token}/send"
 func SendAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	bot, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.WhatsAppService.DB.Bot.FindByToken(token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
@@ -54,7 +54,7 @@ func SendAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 // ReceiveAPIHandler renders route GET "/v1/bot/{token}/receive"
 func ReceiveAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	bot, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.WhatsAppService.DB.Bot.FindByToken(token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
@@ -89,7 +89,7 @@ func ReceiveAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 // InfoAPIHandler renders route GET "/v1/bot/{token}"
 func InfoAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	bot, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.WhatsAppService.DB.Bot.FindByToken(token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
@@ -109,7 +109,7 @@ func InfoAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 
 func WebHookAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	bot, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.WhatsAppService.DB.Bot.FindByToken(token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found on WebHookHandler", token))
 		return
@@ -137,7 +137,7 @@ func WebHookAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 
 	bot.WebHook = p.Url
 	// Atualizando banco de dados
-	if err := bot.WebHookUpdate(models.GetDB()); err != nil {
+	if err := bot.WebHookUpdate(); err != nil {
 		return
 	}
 
@@ -147,7 +147,7 @@ func WebHookAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 // AttachmentHandler renders route POST "/v1/bot/{token}/attachment"
 func AttachmentAPIHandlerV1(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	bot, err := models.FindBotByToken(models.GetDB(), token)
+	bot, err := models.WhatsAppService.DB.Bot.FindByToken(token)
 	if err != nil {
 		respondNotFound(w, fmt.Errorf("Token '%s' not found", token))
 		return
