@@ -15,3 +15,6 @@ secrets/
 tmp/
 docker-compose.yml
 __debug_bin
+
+# symbolic link to src folder under linux
+quepasa/
