@@ -1,0 +1,33 @@
+[Unit]  
+Description=Quepasa API Service 
+ConditionPathExists=/opt/quepasa
+After=network.target
+  
+[Service]  
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=-/bin/mkdir -p /var/log/quepasa
+ExecStartPre=-/bin/chown syslog:adm /var/log/quepasa
+ExecStartPre=-/bin/chmod 777 /var/log/quepasa
+
+ExecStart=go run main.go  
+WorkingDirectory=/opt/quepasa/  
+Type=simple
+User=root  
+Group=root
+PrivateTmp=true  
+
+# ensure the service restarts after crashing
+Restart=on-failure
+
+# amount of time to wait before restarting the service              
+RestartSec=5  
+
+SyslogIdentifier=[quepasa]
+StandardOutput=syslog
+StandardError=syslog
+
+KillSignal=SIGINT
+
+[Install]  
+WantedBy=multi-user.target 
