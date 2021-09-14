@@ -102,7 +102,7 @@ func MigrateToLatest() (err error) {
 	connection := fmt.Sprintf("%s://%s:%s@tcp(%s:%s)/%s",
 		config.Driver, config.User, config.Password, config.Host, config.Port, config.DataBase)
 
-	log.Println("Migrating files from: %s", fullPath)
+	log.Println("Migrating files from: ", fullPath)
 	m, err := migrate.New(fullPath, connection)
 	if err != nil {
 		return err
