@@ -7,11 +7,7 @@
 
 <script>
   (function() {
-    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/verify/ws", {
-      protocolVersion: 8,
-      origin: '{{ .Host }}',
-      rejectUnauthorized: false
-    });
+    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/verify/ws", { protocolVersion: 8, origin: '{{ .Host }}', rejectUnauthorized: false });
     ws.onmessage = function (event) {
       if (event.data === "Complete") {
         window.location.replace("/account");
