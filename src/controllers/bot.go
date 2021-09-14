@@ -145,6 +145,7 @@ var upgrader = websocket.Upgrader{}
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUser(r)
 	if err != nil {
+		log.Print("Connection upgrade error (not logged): ", err)
 		redirectToLogin(w, r)
 		return
 	}
