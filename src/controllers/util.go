@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 func parseJSONBody(r *http.Request) (map[string]interface{}, error) {
@@ -22,13 +24,13 @@ func redirectToLogin(w http.ResponseWriter, r *http.Request) {
 
 // Google chrome bloqueou wss, portanto retornaremos sempre ws apatir de agora
 func webSocketProtocol() string {
-	//protocol := "wss"
-	//if os.Getenv("APP_ENV") == "development" {
-	//	protocol = "ws"
-	//}
+	protocol := "ws"
+	isSecure, _ := models.GetEnvBool("WEBSOCKETSSL", false) 
+	if isSecure {
+		protocol = "wss"
+	}
 
-	// return protocol
-	return "ws"
+	return protocol
 }
 
 func validateEmail(s string) bool {
