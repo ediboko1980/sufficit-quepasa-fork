@@ -108,6 +108,7 @@ func MigrateToLatest() (err error) {
 		return err
 	}
 
+	log.Println("Migrating UP ...")
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return err
