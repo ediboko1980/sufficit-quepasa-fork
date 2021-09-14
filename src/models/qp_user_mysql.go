@@ -56,7 +56,7 @@ func (source QPUserMysql) Check(email string, password string) (QPUser, error) {
 func (source QPUserMysql) Create(email string, password string) (QPUser, error) {
 	var user QPUser
 	userID := uuid.New().String()
-	now := time.Now().Format(time.RFC3339)
+	now := time.Now()
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
