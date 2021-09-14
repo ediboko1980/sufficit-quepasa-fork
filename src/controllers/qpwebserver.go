@@ -16,12 +16,13 @@ import (
 func QPWebServerStart() {
 	r := newRouter()
 	webAPIPort := os.Getenv("WEBAPIPORT")
+	webAPIHost := os.Getenv("WEBAPIHOST")
 	if len(webAPIPort) == 0 {
 		webAPIPort = "31000"
 	}
 
 	log.Printf("Starting Web Server on Port: %s", webAPIPort)
-	err := http.ListenAndServe(":"+webAPIPort, r)
+	err := http.ListenAndServe(webAPIHost+":"+webAPIPort, r)
 	if err != nil {
 		log.Fatal(err)
 	}
