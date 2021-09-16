@@ -47,6 +47,133 @@ https://app.element.io/#/room/#cdr-link-dev-support:matrix.org
 
 ## Usage
 
+## Prerequisites Local Devlopment (recomneded)
+
+* Mysql (Recommended)
+* Golang (Version go1.14.15)
+
+### *installing golang*
+
+```bash
+cd /usr/src
+
+sudo wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.14.15.linux-amd64.tar.gz
+
+#export the PATH
+export PATH=$PATH:/usr/local/go/bin
+
+```
+
+
+
+**First Step**
+
+  Clone the repo 
+
+  ```bash
+
+git clone https://github.com/sufficit/sufficit-quepasa-fork.git
+
+  ```
+
+**Second Step**
+
+  Create Database and Users
+
+```bash
+
+sudo mysql
+
+# create the user
+
+mysql> CREATE USER 'quepasa'@'%'IDENTIFIED BY 'S0me_RaNdoM_T3*T';
+
+# Granting Permition to the Quepasa User
+
+mysql> GRANT ALL ON quepasa.* TO 'quepasa'@'%';
+
+# Flushing the Privileges 
+
+mysql> FLUSH PRIVILEGES;
+
+# Create quepasa DataBase 
+
+mysql> CREATE DATABASE quepasa;
+
+# exit mysql 
+
+mysql> exit
+
+```
+
+**third Step**
+
+  Creating the Tables Required
+
+  ```bash
+# cd into the cloned reop
+
+cd <git_clone_location>/src/migrations/
+
+#below will create the relevent tables in the quepasa database for you
+
+sudo mysql --database=quepasa < 1_create_tables.up.sql
+
+  ```
+**forth Step**
+
+Creating the .env file
+
+```bash
+# this file contains all the environment varibles that the system needed do the changes that matches your deployment
+
+#create the .env file in the below location
+
+nano <git_clone_location>/src/.env
+
+# content of the file should looklike this 
+
+WEBAPIHOST=0.0.0.0 
+WEBAPIPORT=31000 # web port of the API
+WEBSOCKETSSL=false # http or Https
+DBDRIVER=mysql #Databse Server
+DBHOST=localhost
+DBDATABASE=quepasa
+DBPORT=3306
+DBUSER=quepasa
+DBPASSWORD='S0me_RaNdoM_T3*T' #the string you created in the third step 
+DBSSLMODE=disable
+APP_ENV=development # this will write some extra debug messages you can change it to production if needed
+MIGRATIONS=false
+SIGNING_SECRET=5345fgdgfd54asdasdasdd #some random test this will be used for password encription 
+
+```
+
+**fifth Step**
+
+Compiling the Packge
+
+```bash
+# cd into the src directory
+
+<git_clone_location>/src/
+
+# compile using golang this may take few seconds to compile
+
+go run main.go
+
+```
+
+**final step**
+
+go to http://yourIP:3100/setup in the web browser and register an admin user for your system
+    
+
+
+if error occourd such as go not found please make sure to [export the path](#installing-golang)
+
+
 ### Prerequisites
 
 For local development
