@@ -47,12 +47,12 @@ https://app.element.io/#/room/#cdr-link-dev-support:matrix.org
 
 ## Usage
 
-## Prerequisites Local Devlopment (recomneded)
+## Prerequisites Local Deployment
 
 * Mysql (Recommended)
 * Golang (Version go1.14.15)
 
-### *installing golang*
+### *installing above golang version*
 
 ```bash
 cd /usr/src
@@ -67,7 +67,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 
 
-**First Step**
+### **First step**
 
   Clone the repo 
 
@@ -77,7 +77,7 @@ git clone https://github.com/sufficit/sufficit-quepasa-fork.git
 
   ```
 
-**Second Step**
+### **Second step**
 
   Create Database and Users
 
@@ -107,7 +107,7 @@ mysql> exit
 
 ```
 
-**third Step**
+### **Third step**
 
   Creating the Tables Required
 
@@ -121,7 +121,7 @@ cd <git_clone_location>/src/migrations/
 sudo mysql --database=quepasa < 1_create_tables.up.sql
 
   ```
-**forth Step**
+### **Forth step**
 
 Creating the .env file
 
@@ -150,7 +150,7 @@ SIGNING_SECRET=5345fgdgfd54asdasdasdd #some random test this will be used for pa
 
 ```
 
-**fifth Step**
+### **Fifth step**
 
 Compiling the Packge
 
@@ -164,15 +164,24 @@ Compiling the Packge
 go run main.go
 
 ```
-
-**final step**
-
-go to http://yourIP:3100/setup in the web browser and register an admin user for your system
-    
+if error occourd such as *"go not found"* please make sure to [export the path](#installing-golang) again
 
 
-if error occourd such as go not found please make sure to [export the path](#installing-golang)
+### **Final step**
 
+- go to http://your.ip.address:3100/setup in the web browser and register an admin user for your system
+- log in to the sysetm http://your.ip.address:3100 form previously created user and scan the qr using you whatsapp 
+
+
+
+
+
+
+---
+
+
+
+## Docker Implimentation
 
 ### Prerequisites
 
