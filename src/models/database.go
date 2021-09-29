@@ -40,7 +40,7 @@ func GetDB() *sqlx.DB {
 
 		// Tenta realizar a conexão
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 
 		dbconn.DB.SetMaxIdleConns(500)
@@ -48,7 +48,7 @@ func GetDB() *sqlx.DB {
 		dbconn.DB.SetConnMaxLifetime(30 * time.Second)
 
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 
 		// Definindo uma única conexão para todo o sistema
