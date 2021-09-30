@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
+	"github.com/sufficit/sufficit-quepasa-fork/models"
 )
 
 func QPWebServerStart() {
@@ -33,7 +34,12 @@ func newRouter() chi.Router {
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	
+	shouldLog, _ := models.GetEnvBool("HTTPLOGS", false)
+	if shouldLog {
+		r.Use(middleware.Logger)
+	}
+	
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 

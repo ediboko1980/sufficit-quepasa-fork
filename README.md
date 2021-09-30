@@ -287,22 +287,27 @@ GET /bot/<TOKEN>/receive?timestamp=1541265073783
   }
 }
 ```
-## Environment Variables
+### Environment Variables
 
-WEBAPIPORT:			31000				#
-PGHOST: 			"localhost"			#
-PGDATABASE:			"quepasa_dev"   	#
-PGPORT:				"5432"				#
-PGUSER:				"quepasa"			#
-PGPASSWORD:			"quepasa"			#
-PGSSLMODE:			"disable"			#
+WEBAPIHOST:
+WEBAPIPORT:			"31000"				#
+WEBSOCKETSSL:
+DBDRIVER:			"mysql"
+DBHOST: 			"localhost"			#
+DBDATABASE:			"quepasa_dev"   	#
+DBPORT:				"5432"				#
+DBUSER:				"quepasa"			#
+DBPASSWORD:			"quepasa"			#
+DBSSLMODE:			"disable"			#
 APP_ENV:			"development"		#
+HTTPLOGS:			false				# Should log http requests ?
+MIGRATIONS:			false
 DEBUGREQUESTS:		true				#
 DEBUGJSONMESSAGES:	true				#
 SIGNING_SECRET:		"any secret here"	#
 TZ:					"America/Sao_Paulo"	#
 
-## License
+### License
 
 [![License GNU AGPL v3.0](https://img.shields.io/badge/License-AGPL%203.0-lightgrey.svg)](https://github.com/sufficit/sufficit-quepasa-fork/blob/master/LICENSE.md)
 
