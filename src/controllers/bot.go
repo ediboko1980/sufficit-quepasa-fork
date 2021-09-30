@@ -170,6 +170,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	bot, err := models.SignInWithQRCode(user, out)
 	if err != nil {
 		err = con.WriteMessage(websocket.TextMessage, []byte("Complete"))
+		
 		// Se for timeout não me interessa e volta para tela de contas
 		if err != nil {
 			log.Printf("error on read qr code: %s", err)
