@@ -18,3 +18,4 @@ __debug_bin
 
 # symbolic link to src folder under linux
 quepasa/
+src/__debug_bin.exe

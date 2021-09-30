@@ -173,8 +173,10 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		// Se for timeout não me interessa e volta para tela de contas
 		if err != nil {
 			log.Printf("error on read qr code: %s", err)
+			w.WriteHeader(500)
+			return
 		}
-
+		
 		w.WriteHeader(http.StatusOK)
 		return
 	}
