@@ -16,6 +16,13 @@ tmp/
 docker-compose.yml
 __debug_bin
 
+#files for production
+src/.cache 
+src/.profile
+src/.env
+src/go
+
 # symbolic link to src folder under linux
 quepasa/
+
 src/__debug_bin.exe
