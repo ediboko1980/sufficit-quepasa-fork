@@ -118,14 +118,22 @@ func (server *QPWhatsAppServer) Start() (err error) {
 	err = server.startHandlers()
 	if err != nil {
 		*server.Status = "fail"
-		if strings.Contains(err.Error(), "401") {
-			log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
-			err = server.Bot.MarkVerified(false)
-		} else if strings.Contains(err.Error(), "restore session connection timed out") {
-			log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
-		} else {
-			log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
-		}
+		switch t := err.(type) {
+		default:
+			if strings.Contains(err.Error(), "401") {
+				log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
+				err = server.Bot.MarkVerified(false)
+			} else if strings.Contains(err.Error(), "restore session connection timed out") {
+				log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
+			} else {
+				log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
+			}
+		case *ServiceUnreachableError:
+			fmt.Println(err, t)
+	   }
+
+
+		
 
 		// Importante para evitar que a conexão em falha continue aberta
 		server.Connection.RemoveHandlers()
