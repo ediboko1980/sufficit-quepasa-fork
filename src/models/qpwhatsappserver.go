@@ -123,6 +123,8 @@ func (server *QPWhatsAppServer) Start() (err error) {
 			err = server.Bot.MarkVerified(false)
 		} else if strings.Contains(err.Error(), "restore session connection timed out") {
 			log.Printf("(%s) WhatsApp returns after a timeout, trying again in 10 seconds, please wait ...", server.Bot.GetNumber())
+		} else if strings.Contains(err.Error(), "bad handshake") {
+			log.Printf("(%s)(ERR) SUFF ERROR G :: Starting Handlers error 'bad handshake', probably an WhatsApp (Facebook) servers error", server.Bot.GetNumber())
 		} else {
 			log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
