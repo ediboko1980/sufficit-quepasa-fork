@@ -129,7 +129,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 				log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 			}
 		case *ServiceUnreachableError:
-			fmt.Println(err)
+			log.Println(err)
 	   }		
 
 		// Importante para evitar que a conexão em falha continue aberta
