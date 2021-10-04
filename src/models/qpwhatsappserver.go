@@ -118,7 +118,7 @@ func (server *QPWhatsAppServer) Start() (err error) {
 	err = server.startHandlers()
 	if err != nil {
 		*server.Status = "fail"
-		switch t := err.(type) {
+		switch err.(type) {
 		default:
 			if strings.Contains(err.Error(), "401") {
 				log.Printf("(%s) WhatsApp return a unauthorized state, please verify again", server.Bot.GetNumber())
@@ -129,11 +129,8 @@ func (server *QPWhatsAppServer) Start() (err error) {
 				log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 			}
 		case *ServiceUnreachableError:
-			fmt.Println(err, t)
-	   }
-
-
-		
+			fmt.Println(err)
+	   }		
 
 		// Importante para evitar que a conexão em falha continue aberta
 		server.Connection.RemoveHandlers()
