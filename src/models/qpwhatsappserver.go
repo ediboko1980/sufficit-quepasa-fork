@@ -203,9 +203,12 @@ func (server *QPWhatsAppServer) GetMessages(timestamp uint64) (messages []QPMess
 
 func (server *QPWhatsAppServer) startHandlers() (err error) {
 	con, err := CreateConnection()
-	if err != nil {
+	if err != nil {		
 		if strings.Contains(err.Error(), "bad handshake") {
-			log.Printf("(%s)(ERR) SUFF ERROR G :: Starting Handlers error 'bad handshake', probably an WhatsApp (Facebook) servers error", server.Bot.GetNumber())
+			return &ServiceUnreachableError { 
+				Server: server.Bot.GetNumber(),
+				Message: "bad handshake",
+			}			
 		} else {
 			log.Printf("(%s)(ERR) SUFF ERROR H :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
