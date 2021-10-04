@@ -126,7 +126,11 @@ func (server *QPWhatsAppServer) Start() (err error) {
 		} else {
 			log.Printf("(%s)(ERR) SUFF ERROR F :: Starting Handlers error ... %s :", server.Bot.GetNumber(), err)
 		}
-		server.Disconnect("starting failure ...")		
+
+		// Importante para evitar que a conexão em falha continue aberta
+		server.Connection.RemoveHandlers()
+		server.Connection.Disconnect()	
+
 	} else {
 		*server.Status = "ready"
 	}
