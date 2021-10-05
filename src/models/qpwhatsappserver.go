@@ -98,7 +98,7 @@ func (server *QPWhatsAppServer) Shutdown() (err error) {
 	server.Connection.RemoveHandlers()
 
 	_, err = server.Connection.Disconnect()
-	if err != nil {
+	if err != nil || !strings.Contains(err.Error(), "not connected") {
 		log.Printf("(%s)(ERR) Shutting WhatsApp Server : %s", server.Bot.GetNumber(), err.Error())
 	} else {
 		*server.Status = "stopped"
