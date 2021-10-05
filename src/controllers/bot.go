@@ -81,7 +81,7 @@ func DebugHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = bot.ToggleDevel()
 	if err != nil {
-		log.Print("Error on toggle devel: ", err)
+		log.Printf("(%s)(ERR) Debug Handler :: '%s',", bot.GetNumber(), err)
 		return
 	}
 
@@ -105,7 +105,7 @@ func ToggleHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = bot.Toggle()
 	if err != nil {
-		log.Print("error on toggle: ", err)
+		log.Print("(%s)(ERR) Toggle Handler :: '%s',", bot.GetNumber(), err)
 		return
 	}
 
