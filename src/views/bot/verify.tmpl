@@ -6,23 +6,37 @@
 {{ end }}
 
 <script>
-  (function() {
-    var ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/verify/ws");
-    ws.onmessage = function (event) {
+  window.onload = getQRCode;
+
+  function getQRCode() {
+    let ws = new WebSocket("{{ .Protocol }}://{{ .Host }}/bot/verify/ws");
+    ws.onopen = onWebSocketOpen;
+    ws.onmessage = onWebSocketMessage;
+  }
+
+  function onWebSocketOpen(event){
+    if (event) {
+      event.target.send("start");
+    } else { console.debug("no event passed"); }
+  }
+
+  function onWebSocketMessage(event){
+    if (event) {
       if (event.data === "Complete") {
         window.location.replace("/account");
       } else {
         var img = document.getElementById("qr-code");
         img.src = "data:image/png;base64, " + event.data;
       }
-    }
-    ws.onopen = function (event) {
-      ws.send("start");
-    };
-  })();
+    } else { console.debug("no event passed"); }
+  }
 </script>
-<label class="label">Scan this QR code in the next 20 seconds:</label>
-<img id="qr-code" src="">
-<button class="button is-block is-large is-fullwidth" formaction="/bot/verify">New code</button>
-<a href="/account">Back</a>
+<div class="is-block is-large is-fullwidth container" style="text-align: center;">
+  <hr />
+  <label class="label">Scan this QR code in the next 20 seconds:</label>
+  <img id="qr-code" src="">
+  <button class="button is-block is-large is-fullwidth" onclick="getQRCode();">New code</button>
+  <hr />
+  <a href="/account">Back</a>
+</div>
 {{ end }}
