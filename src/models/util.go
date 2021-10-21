@@ -3,20 +3,10 @@ package models
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
-	"runtime"
-	"strconv"
 	"strings"
-
 	"github.com/go-chi/jwtauth"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // GetUser gets the user_id from the JWT and finds the
@@ -56,63 +46,4 @@ func GetPhoneByID(id string) (out string, err error) {
 		out = matches[0]
 	}
 	return out, err
-}
-
-// MigrateToLatest updates the database to the latest schema
-func MigrateToLatest() (err error) {
-	strMigrations := os.Getenv("MIGRATIONS")
-	if len(strMigrations) == 0 {
-		return
-	}
-
-	var fullPath string
-	boolMigrations, err := strconv.ParseBool(strMigrations)
-	if err == nil {
-		// Caso false, migrações não habilitadas
-		// Retorna sem problemas
-		if !boolMigrations {
-			return
-		}
-	} else {
-		fullPath = strMigrations
-	}
-
-	log.Println("Migrating database (if necessary)")
-	if boolMigrations {
-		workDir, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		if runtime.GOOS == "windows" {
-			log.Println("Migrating database on Windows")
-
-			// windows ===================
-			leadingWindowsUnit, _ := filepath.Rel("z:\\", workDir)
-			migrationsDir := filepath.Join(leadingWindowsUnit, "migrations")
-			fullPath = fmt.Sprintf("file:///%s", strings.ReplaceAll(migrationsDir, "\\", "/"))
-		} else {
-			// linux ===================
-			migrationsDir := filepath.Join(workDir, "migrations")
-			fullPath = fmt.Sprintf("file://%s", strings.TrimLeft(migrationsDir, "/"))
-		}
-	}
-
-	config := GetDBConfig()
-	connection := fmt.Sprintf("%s://%s:%s@tcp(%s:%s)/%s",
-		config.Driver, config.User, config.Password, config.Host, config.Port, config.DataBase)
-
-	log.Println("Migrating files from: ", fullPath)
-	m, err := migrate.New(fullPath, connection)
-	if err != nil {
-		return err
-	}
-
-	log.Println("Migrating UP ...")
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-
-	return nil
 }

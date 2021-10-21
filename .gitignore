@@ -21,8 +21,11 @@ src/.cache
 src/.profile
 src/.env
 src/go
+src/sqlite3
+src/*.db
 
 # symbolic link to src folder under linux
 quepasa/
 
 src/__debug_bin.exe
+src/models/qp_database_config.go

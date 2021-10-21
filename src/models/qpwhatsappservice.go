@@ -8,7 +8,7 @@ import (
 // Serviço que controla os servidores / bots individuais do whatsapp
 type QPWhatsAppService struct {
 	Servers map[string]*QPWhatsAppServer
-	DB      *QPDataBase
+	DB      *QPDatabase
 	Sync    *sync.Mutex // Objeto de sinaleiro para evitar chamadas simultâneas a este objeto
 }
 

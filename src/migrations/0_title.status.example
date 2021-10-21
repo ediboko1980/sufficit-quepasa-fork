@@ -1,0 +1,9 @@
+Files splited on three forms
+
+0-9.        Numbers followed by "_" (TimeStamp sugested)
+[A-Z0-9_].     AlphaNumeric followed by "."
+up|down     Status followed by "."
+sql         Extension
+
+202110211710_testing_migrations.up.sql      => what to do on up migrations
+202110211710_testing_migrations.down.sql    => what to do on down migrations
